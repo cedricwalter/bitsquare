@@ -599,7 +599,7 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
             setId("footer-pane");
             setMinHeight(30);
             setMaxHeight(30);
-        }§
+        }
     }
 
     private static class PriceFeedComboBoxItemListCell extends ListCell<PriceFeedComboBoxItem> {
