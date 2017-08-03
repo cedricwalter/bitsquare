@@ -115,17 +115,7 @@ public class RpcService {
     }
 
     void registerBlockHandler(Consumer<Block> blockHandler) {
-        daemon.addBlockListener(new BlockListener() {
-            @Override
-            public void blockDetected(Block block) {
-                if (block != null) {
-                    log.info("New block received: height={}, id={}", block.getHeight(), block.getHash());
-                    blockHandler.accept(block);
-                } else {
-                    log.error("We received a block with value null. That should not happen.");
-                }
-            }
-        });
+        daemon.addBlockListener(new MyBlockListener(blockHandler));
     }
 
     int requestChainHeadHeight() throws BitcoindException, CommunicationException {
@@ -215,5 +205,23 @@ public class RpcService {
 
     Transaction requestTx(String txId) throws BitcoindException, CommunicationException {
         return client.getTransaction(txId);
+    }
+
+    private static class MyBlockListener extends BlockListener {
+        private final Consumer<Block> blockHandler;
+
+        public MyBlockListener(Consumer<Block> blockHandler) {
+            this.blockHandler = blockHandler;
+        }
+
+        @Override
+        public void blockDetected(Block block) {
+            if (block != null) {
+                log.info("New block received: height={}, id={}", block.getHeight(), block.getHash());
+                blockHandler.accept(block);
+            } else {
+                log.error("We received a block with value null. That should not happen.");
+            }
+        }
     }
 }

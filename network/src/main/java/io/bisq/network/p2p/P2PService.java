@@ -537,18 +537,7 @@ public class P2PService implements SetupListener, MessageListener, ConnectionLis
                     peersNodeAddress.getAddressPrefixHash(),
                     UUID.randomUUID().toString());
             SettableFuture<Connection> future = networkNode.sendMessage(peersNodeAddress, prefixedSealedAndSignedMessage);
-            Futures.addCallback(future, new FutureCallback<Connection>() {
-                @Override
-                public void onSuccess(@Nullable Connection connection) {
-                    sendDirectMessageListener.onArrived();
-                }
-
-                @Override
-                public void onFailure(@NotNull Throwable throwable) {
-                    throwable.printStackTrace();
-                    sendDirectMessageListener.onFault();
-                }
-            });
+            Futures.addCallback(future, new ConnectionFutureCallback(sendDirectMessageListener));
         } catch (CryptoException e) {
             e.printStackTrace();
             log.error(message.toString());
@@ -677,45 +666,7 @@ public class P2PService implements SetupListener, MessageListener, ConnectionLis
                             optionalKeyRing.get().getSignatureKeyPair(),
                             receiversPublicKey);
 
-                    BroadcastHandler.Listener listener = new BroadcastHandler.Listener() {
-                        @Override
-                        public void onBroadcasted(BroadcastMessage message, int numOfCompletedBroadcasts) {
-                        }
-
-                        @Override
-                        public void onBroadcastedToFirstPeer(BroadcastMessage message) {
-                            // The reason for that check was to separate different callback for different send calls.
-                            // We only want to notify our sendMailboxMessageListener for the calls he is interested in.
-                            if (message instanceof AddDataMessage &&
-                                    ((AddDataMessage) message).getProtectedStorageEntry().equals(protectedMailboxStorageEntry)) {
-                                // We delay a bit to give more time for sufficient propagation in the P2P network.
-                                // This should help to avoid situations where a user closes the app too early and the msg
-                                // does not arrive.
-                                // We could use onBroadcastCompleted instead but it might take too long if one peer
-                                // is very badly connected.
-                                // TODO We could check for a certain threshold of no. of incoming network_messages of the same msg
-                                // to see how well it is propagated. BitcoinJ uses such an approach for tx propagation.
-                                UserThread.runAfter(() -> {
-                                    log.info("Broadcasted to first peer (3 sec. ago):  Message = {}", Utilities.toTruncatedString(message));
-                                    sendMailboxMessageListener.onStoredInMailbox();
-                                }, 3);
-                            }
-                        }
-
-                        @Override
-                        public void onBroadcastCompleted(BroadcastMessage message, int numOfCompletedBroadcasts, int numOfFailedBroadcasts) {
-                            log.info("Broadcast completed: Sent to {} peers (failed: {}). Message = {}",
-                                    numOfCompletedBroadcasts, numOfFailedBroadcasts, Utilities.toTruncatedString(message));
-                            if (numOfCompletedBroadcasts == 0)
-                                sendMailboxMessageListener.onFault("Broadcast completed without any successful broadcast");
-                        }
-
-                        @Override
-                        public void onBroadcastFailed(String errorMessage) {
-                            // TODO investigate why not sending sendMailboxMessageListener.onFault. Related probably
-                            // to the logic from BroadcastHandler.sendToPeer
-                        }
-                    };
+                    BroadcastHandler.Listener listener = new BroadcastHandlerListener(protectedMailboxStorageEntry, sendMailboxMessageListener);
                     boolean result = p2PDataStorage.add(protectedMailboxStorageEntry, networkNode.getNodeAddress(), listener, true);
                     if (!result) {
                         //TODO remove and add again with a delay to ensure the data will be broadcasted
@@ -922,6 +873,73 @@ public class P2PService implements SetupListener, MessageListener, ConnectionLis
         } else {
             log.debug("myOnionAddress is null at verifyAddressPrefixHash. That is expected at startup.");
             return false;
+        }
+    }
+
+    private static class BroadcastHandlerListener implements BroadcastHandler.Listener {
+        private final ProtectedMailboxStorageEntry protectedMailboxStorageEntry;
+        private final SendMailboxMessageListener sendMailboxMessageListener;
+
+        public BroadcastHandlerListener(ProtectedMailboxStorageEntry protectedMailboxStorageEntry, SendMailboxMessageListener sendMailboxMessageListener) {
+            this.protectedMailboxStorageEntry = protectedMailboxStorageEntry;
+            this.sendMailboxMessageListener = sendMailboxMessageListener;
+        }
+
+        @Override
+        public void onBroadcasted(BroadcastMessage message, int numOfCompletedBroadcasts) {
+        }
+
+        @Override
+        public void onBroadcastedToFirstPeer(BroadcastMessage message) {
+            // The reason for that check was to separate different callback for different send calls.
+            // We only want to notify our sendMailboxMessageListener for the calls he is interested in.
+            if (message instanceof AddDataMessage &&
+                    ((AddDataMessage) message).getProtectedStorageEntry().equals(protectedMailboxStorageEntry)) {
+                // We delay a bit to give more time for sufficient propagation in the P2P network.
+                // This should help to avoid situations where a user closes the app too early and the msg
+                // does not arrive.
+                // We could use onBroadcastCompleted instead but it might take too long if one peer
+                // is very badly connected.
+                // TODO We could check for a certain threshold of no. of incoming network_messages of the same msg
+                // to see how well it is propagated. BitcoinJ uses such an approach for tx propagation.
+                UserThread.runAfter(() -> {
+                    log.info("Broadcasted to first peer (3 sec. ago):  Message = {}", Utilities.toTruncatedString(message));
+                    sendMailboxMessageListener.onStoredInMailbox();
+                }, 3);
+            }
+        }
+
+        @Override
+        public void onBroadcastCompleted(BroadcastMessage message, int numOfCompletedBroadcasts, int numOfFailedBroadcasts) {
+            log.info("Broadcast completed: Sent to {} peers (failed: {}). Message = {}",
+                    numOfCompletedBroadcasts, numOfFailedBroadcasts, Utilities.toTruncatedString(message));
+            if (numOfCompletedBroadcasts == 0)
+                sendMailboxMessageListener.onFault("Broadcast completed without any successful broadcast");
+        }
+
+        @Override
+        public void onBroadcastFailed(String errorMessage) {
+            // TODO investigate why not sending sendMailboxMessageListener.onFault. Related probably
+            // to the logic from BroadcastHandler.sendToPeer
+        }
+    }
+
+    private static class ConnectionFutureCallback implements FutureCallback<Connection> {
+        private final SendDirectMessageListener sendDirectMessageListener;
+
+        public ConnectionFutureCallback(SendDirectMessageListener sendDirectMessageListener) {
+            this.sendDirectMessageListener = sendDirectMessageListener;
+        }
+
+        @Override
+        public void onSuccess(@Nullable Connection connection) {
+            sendDirectMessageListener.onArrived();
+        }
+
+        @Override
+        public void onFailure(@NotNull Throwable throwable) {
+            throwable.printStackTrace();
+            sendDirectMessageListener.onFault();
         }
     }
 }

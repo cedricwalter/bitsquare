@@ -553,19 +553,7 @@ public class BtcWalletService extends WalletService {
                         }
                         if (sendResult != null) {
                             log.info("Broadcasting double spending transaction. " + sendResult.tx);
-                            Futures.addCallback(sendResult.broadcastComplete, new FutureCallback<Transaction>() {
-                                @Override
-                                public void onSuccess(Transaction result) {
-                                    log.info("Double spending transaction published. " + result);
-                                    resultHandler.run();
-                                }
-
-                                @Override
-                                public void onFailure(@NotNull Throwable t) {
-                                    log.error("Broadcasting double spending transaction failed. " + t.getMessage());
-                                    errorMessageHandler.handleErrorMessage(t.getMessage());
-                                }
-                            });
+                            Futures.addCallback(sendResult.broadcastComplete, new TransactionFutureCallback(resultHandler, errorMessageHandler));
                         }
 
                     } catch (InsufficientMoneyException e) {
@@ -802,5 +790,27 @@ public class BtcWalletService extends WalletService {
         checkNotNull(changeAddressAddressEntry, "change address must not be null");
         sendRequest.changeAddress = changeAddressAddressEntry.getAddress();
         return sendRequest;
+    }
+
+    private static class TransactionFutureCallback implements FutureCallback<Transaction> {
+        private final Runnable resultHandler;
+        private final ErrorMessageHandler errorMessageHandler;
+
+        public TransactionFutureCallback(Runnable resultHandler, ErrorMessageHandler errorMessageHandler) {
+            this.resultHandler = resultHandler;
+            this.errorMessageHandler = errorMessageHandler;
+        }
+
+        @Override
+        public void onSuccess(Transaction result) {
+            log.info("Double spending transaction published. " + result);
+            resultHandler.run();
+        }
+
+        @Override
+        public void onFailure(@NotNull Throwable t) {
+            log.error("Broadcasting double spending transaction failed. " + t.getMessage());
+            errorMessageHandler.handleErrorMessage(t.getMessage());
+        }
     }
 }

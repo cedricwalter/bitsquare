@@ -108,17 +108,7 @@ public class VoteView extends ActivatableView<GridPane, Void> {
         //noinspection unchecked
         compensationRequestsComboBox = addLabelComboBox(root, gridRow, "", Layout.FIRST_ROW_DISTANCE).second;
         compensationRequestsComboBox.setPromptText(Res.get("dao.voting.addRequest"));
-        compensationRequestsComboBox.setConverter(new StringConverter<CompensationRequestVoteItem>() {
-            @Override
-            public String toString(CompensationRequestVoteItem item) {
-                return item.compensationRequest.getCompensationRequestPayload().getUid();
-            }
-
-            @Override
-            public CompensationRequestVoteItem fromString(String s) {
-                return null;
-            }
-        });
+        compensationRequestsComboBox.setConverter(new CompensationRequestVoteItemStringConverter());
         compensationRequestsComboBox.setOnAction(event -> {
             SingleSelectionModel<CompensationRequestVoteItem> selectionModel = compensationRequestsComboBox.getSelectionModel();
             CompensationRequestVoteItem selectedItem = selectionModel.getSelectedItem();
@@ -138,17 +128,7 @@ public class VoteView extends ActivatableView<GridPane, Void> {
         //noinspection unchecked
         parametersComboBox = addLabelComboBox(root, ++gridRow, "").second;
         parametersComboBox.setPromptText(Res.get("dao.voting.addParameter"));
-        parametersComboBox.setConverter(new StringConverter<VoteItem>() {
-            @Override
-            public String toString(VoteItem item) {
-                return item.getName();
-            }
-
-            @Override
-            public VoteItem fromString(String s) {
-                return null;
-            }
-        });
+        parametersComboBox.setConverter(new VoteItemStringConverter());
         parametersComboBox.setOnAction(event -> {
             SingleSelectionModel<VoteItem> selectionModel = parametersComboBox.getSelectionModel();
             VoteItem selectedItem = selectionModel.getSelectedItem();
@@ -287,6 +267,30 @@ public class VoteView extends ActivatableView<GridPane, Void> {
         voteButton.setOnAction(null);
         ParameterViewItem.cleanupAllInstances();
         CompensationViewItem.cleanupAllInstances();
+    }
+
+    private static class VoteItemStringConverter extends StringConverter<VoteItem> {
+        @Override
+        public String toString(VoteItem item) {
+            return item.getName();
+        }
+
+        @Override
+        public VoteItem fromString(String s) {
+            return null;
+        }
+    }
+
+    private static class CompensationRequestVoteItemStringConverter extends StringConverter<CompensationRequestVoteItem> {
+        @Override
+        public String toString(CompensationRequestVoteItem item) {
+            return item.compensationRequest.getCompensationRequestPayload().getUid();
+        }
+
+        @Override
+        public CompensationRequestVoteItem fromString(String s) {
+            return null;
+        }
     }
 }
 

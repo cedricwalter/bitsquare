@@ -160,10 +160,7 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
             }, 1);
         }
         
-        HBox leftNavPane = new HBox(marketButton, buyButton, sellButton, portfolioButtonHolder, fundsButton, disputesButtonHolder) {{
-            setLeftAnchor(this, 10d);
-            setTopAnchor(this, 0d);
-        }};
+        HBox leftNavPane = new LeftNavPaneHBox(marketButton, buyButton, sellButton, portfolioButtonHolder, fundsButton, disputesButtonHolder);
 
 
         Tuple2<ComboBox<PriceFeedComboBoxItem>, VBox> marketPriceBox = getMarketPriceBox();
@@ -192,12 +189,7 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
         Tuple2<TextField, VBox> lockedBalanceBox = getBalanceBox(Res.get("mainView.balance.locked"));
         lockedBalanceBox.first.textProperty().bind(model.lockedBalance);
 
-        HBox rightNavPane = new HBox(marketPriceBox.second, availableBalanceBox.second,
-                reservedBalanceBox.second, lockedBalanceBox.second,
-                settingsButton, accountButton, daoButton) {{
-            setRightAnchor(this, 10d);
-            setTopAnchor(this, 0d);
-        }};
+        HBox rightNavPane = new RightNavPaneHBox(marketPriceBox, availableBalanceBox, reservedBalanceBox, lockedBalanceBox, settingsButton, accountButton, daoButton);
 
         root.widthProperty().addListener((observable, oldValue, newValue) -> {
             double w = (double) newValue;
@@ -207,21 +199,11 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
             }
         });
 
-        AnchorPane contentContainer = new AnchorPane() {{
-            setId("content-pane");
-            setLeftAnchor(this, 0d);
-            setRightAnchor(this, 0d);
-            setTopAnchor(this, 60d);
-            setBottomAnchor(this, 10d);
-        }};
+        AnchorPane contentContainer = new ContentContainerAnchorPane();
 
-        AnchorPane applicationContainer = new AnchorPane(leftNavPane, rightNavPane, contentContainer) {{
-            setId("content-pane");
-        }};
+        AnchorPane applicationContainer = new ApplicationContainerContentPane(leftNavPane, rightNavPane, contentContainer);
 
-        BorderPane baseApplicationContainer = new BorderPane(applicationContainer) {{
-            setId("base-content-container");
-        }};
+        BorderPane baseApplicationContainer = new BaseApplicationContainerBorderPane(applicationContainer);
         baseApplicationContainer.setBottom(createFooter());
 
         setupNotificationIcon(portfolioButtonHolder);
@@ -295,18 +277,7 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
     }
 
     private ListCell<PriceFeedComboBoxItem> getPriceFeedComboBoxListCell() {
-        return new ListCell<PriceFeedComboBoxItem>() {
-            @Override
-            protected void updateItem(PriceFeedComboBoxItem item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if (!empty && item != null) {
-                    textProperty().bind(item.displayStringProperty);
-                } else {
-                    textProperty().unbind();
-                }
-            }
-        };
+        return new PriceFeedComboBoxItemListCell();
     }
 
     private Tuple2<ComboBox<PriceFeedComboBoxItem>, VBox> getMarketPriceBox() {
@@ -581,11 +552,7 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
             p2PNetworkIcon.setOpacity(1);
         });
 
-        return new AnchorPane(separator, blockchainSyncBox, versionLabel, p2PNetworkLabel, p2PNetworkIcon) {{
-            setId("footer-pane");
-            setMinHeight(30);
-            setMaxHeight(30);
-        }};
+        return new MyAnchorPane(separator, blockchainSyncBox, versionLabel, p2PNetworkLabel, p2PNetworkIcon);
     }
 
     private void setupNotificationIcon(Pane buttonHolder) {
@@ -624,6 +591,68 @@ public class MainView extends InitializableView<StackPane, MainViewModel> {
         notification.getChildren().addAll(icon, label);
         notification.visibleProperty().bind(model.showOpenDisputesNotification);
         buttonHolder.getChildren().add(notification);
+    }
+
+    private static class MyAnchorPane extends AnchorPane {
+        public MyAnchorPane(Separator separator, HBox blockchainSyncBox, Label versionLabel, Label p2PNetworkLabel, ImageView p2PNetworkIcon) {
+            super(separator, blockchainSyncBox, versionLabel, p2PNetworkLabel, p2PNetworkIcon);
+            setId("footer-pane");
+            setMinHeight(30);
+            setMaxHeight(30);
+        }§
+    }
+
+    private static class PriceFeedComboBoxItemListCell extends ListCell<PriceFeedComboBoxItem> {
+        @Override
+        protected void updateItem(PriceFeedComboBoxItem item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (!empty && item != null) {
+                textProperty().bind(item.displayStringProperty);
+            } else {
+                textProperty().unbind();
+            }
+        }
+    }
+
+    private static class BaseApplicationContainerBorderPane extends BorderPane {
+        public BaseApplicationContainerBorderPane(AnchorPane applicationContainer) {
+            super(applicationContainer);
+            setId("base-content-container");
+        }
+    }
+
+    private static class ApplicationContainerContentPane extends AnchorPane {
+        public ApplicationContainerContentPane(HBox leftNavPane, HBox rightNavPane, AnchorPane contentContainer) {
+            super(leftNavPane, rightNavPane, contentContainer);
+            setId("content-pane");
+        }
+    }
+
+    private static class ContentContainerAnchorPane extends AnchorPane {
+        {
+            setId("content-pane");
+            setLeftAnchor(this, 0d);
+            setRightAnchor(this, 0d);
+            setTopAnchor(this, 60d);
+            setBottomAnchor(this, 10d);
+        }
+    }
+
+    private static class RightNavPaneHBox extends HBox {
+        public RightNavPaneHBox(Tuple2<ComboBox<PriceFeedComboBoxItem>, VBox> marketPriceBox, Tuple2<TextField, VBox> availableBalanceBox, Tuple2<TextField, VBox> reservedBalanceBox, Tuple2<TextField, VBox> lockedBalanceBox, ToggleButton settingsButton, ToggleButton accountButton, ToggleButton daoButton) {
+            super(marketPriceBox.second, availableBalanceBox.second, reservedBalanceBox.second, lockedBalanceBox.second, settingsButton, accountButton, daoButton);
+            setRightAnchor(this, 10d);
+            setTopAnchor(this, 0d);
+        }
+    }
+
+    private static class LeftNavPaneHBox extends HBox {
+        public LeftNavPaneHBox(ToggleButton marketButton, ToggleButton buyButton, ToggleButton sellButton, Pane portfolioButtonHolder, ToggleButton fundsButton, Pane disputesButtonHolder) {
+            super(marketButton, buyButton, sellButton, portfolioButtonHolder, fundsButton, disputesButtonHolder);
+            setLeftAnchor(this, 10d);
+            setTopAnchor(this, 0d);
+        }
     }
 
     private class NavButton extends ToggleButton {

@@ -305,24 +305,26 @@ public class LockedView extends ActivatableView<VBox, Void> {
 
     private void setBalanceColumnCellFactory() {
         balanceColumn.setCellValueFactory((addressListItem) -> new ReadOnlyObjectWrapper<>(addressListItem.getValue()));
-        balanceColumn.setCellFactory(
-                new Callback<TableColumn<LockedListItem, LockedListItem>, TableCell<LockedListItem,
-                        LockedListItem>>() {
-
-                    @Override
-                    public TableCell<LockedListItem, LockedListItem> call(TableColumn<LockedListItem,
-                            LockedListItem> column) {
-                        return new TableCell<LockedListItem, LockedListItem>() {
-                            @Override
-                            public void updateItem(final LockedListItem item, boolean empty) {
-                                super.updateItem(item, empty);
-                                setGraphic((item != null && !empty) ? item.getBalanceLabel() : null);
-                            }
-                        };
-                    }
-                });
+        balanceColumn.setCellFactory(new TableColumnTableCellCallback());
     }
 
+    private static class LockedListItemLockedListItemTableCell extends TableCell<LockedListItem, LockedListItem> {
+        @Override
+        public void updateItem(final LockedListItem item, boolean empty) {
+            super.updateItem(item, empty);
+            setGraphic((item != null && !empty) ? item.getBalanceLabel() : null);
+        }
+    }
+
+    private static class TableColumnTableCellCallback implements Callback<TableColumn<LockedListItem, LockedListItem>, TableCell<LockedListItem,
+                            LockedListItem>> {
+
+        @Override
+        public TableCell<LockedListItem, LockedListItem> call(TableColumn<LockedListItem,
+                LockedListItem> column) {
+            return new LockedListItemLockedListItemTableCell();
+        }
+    }
 }
 
 

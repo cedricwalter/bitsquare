@@ -69,17 +69,7 @@ public class BsqLiteNodeExecutor {
             return null;
         });
 
-        Futures.addCallback(future, new FutureCallback<Void>() {
-            @Override
-            public void onSuccess(Void ignore) {
-                UserThread.execute(() -> UserThread.execute(resultHandler::handleResult));
-            }
-
-            @Override
-            public void onFailure(@NotNull Throwable throwable) {
-                UserThread.execute(() -> errorHandler.accept(throwable));
-            }
-        });
+        Futures.addCallback(future, new VoidFutureCallback(resultHandler, errorHandler));
     }
 
     public void parseBsqBlockForLiteNode(BsqBlock bsqBlock,
@@ -97,16 +87,26 @@ public class BsqLiteNodeExecutor {
             return null;
         });
 
-        Futures.addCallback(future, new FutureCallback<Void>() {
-            @Override
-            public void onSuccess(Void ignore) {
-                UserThread.execute(() -> UserThread.execute(resultHandler::handleResult));
-            }
+        Futures.addCallback(future, new VoidFutureCallback(resultHandler, errorHandler));
+    }
 
-            @Override
-            public void onFailure(@NotNull Throwable throwable) {
-                UserThread.execute(() -> errorHandler.accept(throwable));
-            }
-        });
+    private static class VoidFutureCallback implements FutureCallback<Void> {
+        private final ResultHandler resultHandler;
+        private final Consumer<Throwable> errorHandler;
+
+        public VoidFutureCallback(ResultHandler resultHandler, Consumer<Throwable> errorHandler) {
+            this.resultHandler = resultHandler;
+            this.errorHandler = errorHandler;
+        }
+
+        @Override
+        public void onSuccess(Void ignore) {
+            UserThread.execute(() -> UserThread.execute(resultHandler::handleResult));
+        }
+
+        @Override
+        public void onFailure(@NotNull Throwable throwable) {
+            UserThread.execute(() -> errorHandler.accept(throwable));
+        }
     }
 }

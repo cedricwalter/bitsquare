@@ -62,29 +62,13 @@ public class BsqFullNodeExecutor {
             return null;
         });
 
-        Futures.addCallback(future, new FutureCallback<Void>() {
-            public void onSuccess(Void ignore) {
-                UserThread.execute(resultHandler::handleResult);
-            }
-
-            public void onFailure(@NotNull Throwable throwable) {
-                UserThread.execute(() -> errorHandler.accept(throwable));
-            }
-        });
+        Futures.addCallback(future, new VoidFutureCallback(resultHandler, errorHandler));
     }
 
     public void requestChainHeadHeight(Consumer<Integer> resultHandler, Consumer<Throwable> errorHandler) {
         ListenableFuture<Integer> future = getChainHeightExecutor.submit(rpcService::requestChainHeadHeight);
 
-        Futures.addCallback(future, new FutureCallback<Integer>() {
-            public void onSuccess(Integer chainHeadHeight) {
-                resultHandler.accept(chainHeadHeight);
-            }
-
-            public void onFailure(@NotNull Throwable throwable) {
-                errorHandler.accept(throwable);
-            }
-        });
+        Futures.addCallback(future, new IntegerFutureCallback(resultHandler, errorHandler));
     }
 
     public void parseBlocks(int startBlockHeight,
@@ -105,17 +89,7 @@ public class BsqFullNodeExecutor {
             return null;
         });
 
-        Futures.addCallback(future, new FutureCallback<Void>() {
-            @Override
-            public void onSuccess(Void ignore) {
-                UserThread.execute(() -> UserThread.execute(resultHandler::handleResult));
-            }
-
-            @Override
-            public void onFailure(@NotNull Throwable throwable) {
-                UserThread.execute(() -> errorHandler.accept(throwable));
-            }
-        });
+        Futures.addCallback(future, new VoidFutureCallback(resultHandler, errorHandler));
     }
 
     public void parseBtcdBlock(Block btcdBlock,
@@ -127,20 +101,68 @@ public class BsqFullNodeExecutor {
                 genesisBlockHeight,
                 genesisTxId));
 
-        Futures.addCallback(future, new FutureCallback<BsqBlock>() {
-            @Override
-            public void onSuccess(BsqBlock bsqBlock) {
-                UserThread.execute(() -> resultHandler.accept(bsqBlock));
-            }
-
-            @Override
-            public void onFailure(@NotNull Throwable throwable) {
-                UserThread.execute(() -> errorHandler.accept(throwable));
-            }
-        });
+        Futures.addCallback(future, new BsqBlockFutureCallback(resultHandler, errorHandler));
     }
 
     public void addBlockHandler(Consumer<Block> blockHandler) {
         rpcService.registerBlockHandler(blockHandler);
+    }
+
+    private static class BsqBlockFutureCallback implements FutureCallback<BsqBlock> {
+        private final Consumer<BsqBlock> resultHandler;
+        private final Consumer<Throwable> errorHandler;
+
+        public BsqBlockFutureCallback(Consumer<BsqBlock> resultHandler, Consumer<Throwable> errorHandler) {
+            this.resultHandler = resultHandler;
+            this.errorHandler = errorHandler;
+        }
+
+        @Override
+        public void onSuccess(BsqBlock bsqBlock) {
+            UserThread.execute(() -> resultHandler.accept(bsqBlock));
+        }
+
+        @Override
+        public void onFailure(@NotNull Throwable throwable) {
+            UserThread.execute(() -> errorHandler.accept(throwable));
+        }
+    }
+
+    private static class VoidFutureCallback implements FutureCallback<Void> {
+        private final ResultHandler resultHandler;
+        private final Consumer<Throwable> errorHandler;
+
+        public VoidFutureCallback(ResultHandler resultHandler, Consumer<Throwable> errorHandler) {
+            this.resultHandler = resultHandler;
+            this.errorHandler = errorHandler;
+        }
+
+        @Override
+        public void onSuccess(Void ignore) {
+            UserThread.execute(() -> UserThread.execute(resultHandler::handleResult));
+        }
+
+        @Override
+        public void onFailure(@NotNull Throwable throwable) {
+            UserThread.execute(() -> errorHandler.accept(throwable));
+        }
+    }
+
+    private static class IntegerFutureCallback implements FutureCallback<Integer> {
+        private final Consumer<Integer> resultHandler;
+        private final Consumer<Throwable> errorHandler;
+
+        public IntegerFutureCallback(Consumer<Integer> resultHandler, Consumer<Throwable> errorHandler) {
+            this.resultHandler = resultHandler;
+            this.errorHandler = errorHandler;
+        }
+
+        public void onSuccess(Integer chainHeadHeight) {
+            resultHandler.accept(chainHeadHeight);
+        }
+
+        public void onFailure(@NotNull Throwable throwable) {
+            errorHandler.accept(throwable);
+        }
     }
 }

@@ -283,17 +283,7 @@ public class FiatAccountsView extends ActivatableViewAndModel<GridPane, FiatAcco
                 .filter(paymentMethod -> !paymentMethod.getId().equals(PaymentMethod.BLOCK_CHAINS_ID))
                 .collect(Collectors.toList());
         paymentMethodComboBox.setItems(FXCollections.observableArrayList(list));
-        paymentMethodComboBox.setConverter(new StringConverter<PaymentMethod>() {
-            @Override
-            public String toString(PaymentMethod paymentMethod) {
-                return paymentMethod != null ? Res.get(paymentMethod.getId()) : "";
-            }
-
-            @Override
-            public PaymentMethod fromString(String s) {
-                return null;
-            }
-        });
+        paymentMethodComboBox.setConverter(new PaymentMethodStringConverte());
         paymentMethodComboBox.setOnAction(e -> {
             if (paymentMethodForm != null) {
                 FormBuilder.removeRowsFromGridPane(root, 3, paymentMethodForm.getGridRow() + 1);
@@ -404,5 +394,16 @@ public class FiatAccountsView extends ActivatableViewAndModel<GridPane, FiatAcco
         gridRow = 1;
     }
 
+    private static class PaymentMethodStringConverte extends StringConverter<PaymentMethod> {
+        @Override
+        public String toString(PaymentMethod paymentMethod) {
+            return paymentMethod != null ? Res.get(paymentMethod.getId()) : "";
+        }
+
+        @Override
+        public PaymentMethod fromString(String s) {
+            return null;
+        }
+    }
 }
 

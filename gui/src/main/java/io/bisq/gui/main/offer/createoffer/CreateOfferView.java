@@ -162,20 +162,7 @@ public class CreateOfferView extends ActivatableViewAndModel<AnchorPane, CreateO
 
         balanceTextField.setFormatter(model.getBtcFormatter());
 
-        paymentAccountsComboBox.setConverter(new StringConverter<PaymentAccount>() {
-            @Override
-            public String toString(PaymentAccount paymentAccount) {
-                TradeCurrency singleTradeCurrency = paymentAccount.getSingleTradeCurrency();
-                String code = singleTradeCurrency != null ? singleTradeCurrency.getCode() : "";
-                return paymentAccount.getAccountName() + " (" + code + ", " +
-                        Res.get(paymentAccount.getPaymentMethod().getId()) + ")";
-            }
-
-            @Override
-            public PaymentAccount fromString(String s) {
-                return null;
-            }
-        });
+        paymentAccountsComboBox.setConverter(new PaymentAccountStringConverter());
     }
 
     @Override
@@ -803,17 +790,7 @@ public class CreateOfferView extends ActivatableViewAndModel<AnchorPane, CreateO
         currencyComboBox = currencyComboBoxTuple.second;
         editOfferElements.add(currencyComboBox);
         currencyComboBox.setPromptText(Res.get("list.currency.select"));
-        currencyComboBox.setConverter(new StringConverter<TradeCurrency>() {
-            @Override
-            public String toString(TradeCurrency tradeCurrency) {
-                return tradeCurrency.getNameAndCode();
-            }
-
-            @Override
-            public TradeCurrency fromString(String s) {
-                return null;
-            }
-        });
+        currencyComboBox.setConverter(new TradeCurrencyStringConverter());
 
         Tuple2<Label, TextField> currencyTextFieldTuple = addLabelTextField(gridPane, gridRow, Res.getWithCol("shared.currency"), "", 5);
         currencyTextFieldLabel = currencyTextFieldTuple.first;
@@ -1365,6 +1342,33 @@ public class CreateOfferView extends ActivatableViewAndModel<AnchorPane, CreateO
         double x = point.getX() + window.getX() + totalToPayInfoIconLabel.getWidth() + 2;
         double y = point.getY() + window.getY() + Math.floor(totalToPayInfoIconLabel.getHeight() / 2) - 9;
         return new Point2D(x, y);
+    }
+
+    private static class TradeCurrencyStringConverter extends StringConverter<TradeCurrency> {
+        @Override
+        public String toString(TradeCurrency tradeCurrency) {
+            return tradeCurrency.getNameAndCode();
+        }
+
+        @Override
+        public TradeCurrency fromString(String s) {
+            return null;
+        }
+    }
+
+    private static class PaymentAccountStringConverter extends StringConverter<PaymentAccount> {
+        @Override
+        public String toString(PaymentAccount paymentAccount) {
+            TradeCurrency singleTradeCurrency = paymentAccount.getSingleTradeCurrency();
+            String code = singleTradeCurrency != null ? singleTradeCurrency.getCode() : "";
+            return paymentAccount.getAccountName() + " (" + code + ", " +
+                    Res.get(paymentAccount.getPaymentMethod().getId()) + ")";
+        }
+
+        @Override
+        public PaymentAccount fromString(String s) {
+            return null;
+        }
     }
 }
 

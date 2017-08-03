@@ -172,17 +172,7 @@ public class ArbitratorSelectionView extends ActivatableViewAndModel<GridPane, A
         //noinspection unchecked
         languageComboBox = addLabelComboBox(root, ++gridRow, "", 15).second;
         languageComboBox.setPromptText(Res.get("shared.addLanguage"));
-        languageComboBox.setConverter(new StringConverter<String>() {
-            @Override
-            public String toString(String code) {
-                return LanguageUtil.getDisplayName(code);
-            }
-
-            @Override
-            public String fromString(String s) {
-                return null;
-            }
-        });
+        languageComboBox.setConverter(new StringStringConverter());
         languageComboBox.setOnAction(e -> onAddLanguage());
     }
 
@@ -223,14 +213,7 @@ public class ArbitratorSelectionView extends ActivatableViewAndModel<GridPane, A
         languagesColumn.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue().getLanguageCodes()));
         languagesColumn.setMinWidth(130);
 
-        TableColumn<ArbitratorListItem, ArbitratorListItem> selectionColumn = new TableColumn<ArbitratorListItem, ArbitratorListItem>(
-                Res.get("shared.accept")) {
-            {
-                setMinWidth(60);
-                setMaxWidth(60);
-                setSortable(false);
-            }
-        };
+        TableColumn<ArbitratorListItem, ArbitratorListItem> selectionColumn = new ArbitratorListItemArbitratorListItemTableColumn();
         selectionColumn.setCellValueFactory((arbitrator) -> new ReadOnlyObjectWrapper<>(arbitrator.getValue()));
         selectionColumn.setCellFactory(
                 new Callback<TableColumn<ArbitratorListItem, ArbitratorListItem>, TableCell<ArbitratorListItem, ArbitratorListItem>>() {
@@ -323,6 +306,30 @@ public class ArbitratorSelectionView extends ActivatableViewAndModel<GridPane, A
         //noinspection unchecked
         tableView.getColumns().addAll(dateColumn, nameColumn, languagesColumn, selectionColumn);
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+    }
+
+    private static class ArbitratorListItemArbitratorListItemTableColumn extends TableColumn<ArbitratorListItem, ArbitratorListItem> {
+        {
+            setMinWidth(60);
+            setMaxWidth(60);
+            setSortable(false);
+        }
+
+        public ArbitratorListItemArbitratorListItemTableColumn() {
+            super(Res.get("shared.accept"));
+        }
+    }
+
+    private static class StringStringConverter extends StringConverter<String> {
+        @Override
+        public String toString(String code) {
+            return LanguageUtil.getDisplayName(code);
+        }
+
+        @Override
+        public String fromString(String s) {
+            return null;
+        }
     }
 }
 

@@ -458,12 +458,7 @@ public class TradesChartsView extends ActivatableViewAndModel<VBox, TradesCharts
         VBox.setVgrow(tableView, Priority.ALWAYS);
 
         // date
-        TableColumn<TradeStatistics, TradeStatistics> dateColumn = new TableColumn<TradeStatistics, TradeStatistics>(Res.get("shared.dateTime")) {
-            {
-                setMinWidth(190);
-                setMaxWidth(190);
-            }
-        };
+        TableColumn<TradeStatistics, TradeStatistics> dateColumn = new TradeStatisticsTradeStatisticsTableColumnDateTime();
         dateColumn.setCellValueFactory((tradeStatistics) -> new ReadOnlyObjectWrapper<>(tradeStatistics.getValue()));
         dateColumn.setCellFactory(
                 new Callback<TableColumn<TradeStatistics, TradeStatistics>, TableCell<TradeStatistics,
@@ -487,12 +482,7 @@ public class TradesChartsView extends ActivatableViewAndModel<VBox, TradesCharts
         tableView.getColumns().add(dateColumn);
 
         // market
-        marketColumn = new TableColumn<TradeStatistics, TradeStatistics>(Res.get("shared.market")) {
-            {
-                setMinWidth(130);
-                setMaxWidth(130);
-            }
-        };
+        marketColumn = new TradeStatisticsTradeStatisticsTableColumnMarket();
         marketColumn.setCellValueFactory((tradeStatistics) -> new ReadOnlyObjectWrapper<>(tradeStatistics.getValue()));
         marketColumn.setCellFactory(
                 new Callback<TableColumn<TradeStatistics, TradeStatistics>, TableCell<TradeStatistics,
@@ -674,5 +664,27 @@ public class TradesChartsView extends ActivatableViewAndModel<VBox, TradesCharts
                 available = available + 10;
             tableView.setPrefHeight(available);
         }, 100, TimeUnit.MILLISECONDS);
+    }
+
+    private static class TradeStatisticsTradeStatisticsTableColumnMarket extends TableColumn<TradeStatistics, TradeStatistics> {
+        {
+            setMinWidth(130);
+            setMaxWidth(130);
+        }
+
+        public TradeStatisticsTradeStatisticsTableColumnMarket() {
+            super(Res.get("shared.market"));
+        }
+    }
+
+    private static class TradeStatisticsTradeStatisticsTableColumnDateTime extends TableColumn<TradeStatistics, TradeStatistics> {
+        {
+            setMinWidth(190);
+            setMaxWidth(190);
+        }
+
+        public TradeStatisticsTradeStatisticsTableColumnDateTime() {
+            super(Res.get("shared.dateTime"));
+        }
     }
 }

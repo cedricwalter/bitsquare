@@ -127,33 +127,7 @@ public class WalletConfig extends AbstractIdleService {
         this.spvChainFileName = spvChainFileName;
         this.socks5Proxy = socks5Proxy;
 
-        walletFactory = new BisqWalletFactory() {
-            @Override
-            public Wallet create(NetworkParameters params, KeyChainGroup keyChainGroup) {
-                // This is called when we load an existing wallet
-                // We have already the chain here so we can use this to distinguish.
-                List<DeterministicKeyChain> deterministicKeyChains = keyChainGroup.getDeterministicKeyChains();
-                if (!deterministicKeyChains.isEmpty() && deterministicKeyChains.get(0) instanceof BisqDeterministicKeyChain) {
-                    checkArgument(BisqEnvironment.isBaseCurrencySupportingBsq(), "BisqEnvironment.isBaseCurrencySupportingBsq() is false but we get get " +
-                            "called BisqWalletFactory.create with BisqDeterministicKeyChain");
-                    return new BsqWallet(params, keyChainGroup);
-                } else {
-                    return new Wallet(params, keyChainGroup);
-                }
-            }
-
-            @Override
-            public Wallet create(NetworkParameters params, KeyChainGroup keyChainGroup, boolean isBsqWallet) {
-                // This is called at first startup when we create the wallet
-                if (isBsqWallet) {
-                    checkArgument(BisqEnvironment.isBaseCurrencySupportingBsq(), "BisqEnvironment.isBaseCurrencySupportingBsq() is false but we get get " +
-                            "called BisqWalletFactory.create with isBsqWallet=true");
-                    return new BsqWallet(params, keyChainGroup);
-                } else {
-                    return new Wallet(params, keyChainGroup);
-                }
-            }
-        };
+        walletFactory = new MyBisqWalletFactory();
 
         String path = null;
         if (params.equals(MainNetParams.get())) {
@@ -605,5 +579,33 @@ public class WalletConfig extends AbstractIdleService {
 
     public File directory() {
         return directory;
+    }
+
+    private static class MyBisqWalletFactory implements BisqWalletFactory {
+        @Override
+        public Wallet create(NetworkParameters params, KeyChainGroup keyChainGroup) {
+            // This is called when we load an existing wallet
+            // We have already the chain here so we can use this to distinguish.
+            List<DeterministicKeyChain> deterministicKeyChains = keyChainGroup.getDeterministicKeyChains();
+            if (!deterministicKeyChains.isEmpty() && deterministicKeyChains.get(0) instanceof BisqDeterministicKeyChain) {
+                checkArgument(BisqEnvironment.isBaseCurrencySupportingBsq(), "BisqEnvironment.isBaseCurrencySupportingBsq() is false but we get get " +
+                        "called BisqWalletFactory.create with BisqDeterministicKeyChain");
+                return new BsqWallet(params, keyChainGroup);
+            } else {
+                return new Wallet(params, keyChainGroup);
+            }
+        }
+
+        @Override
+        public Wallet create(NetworkParameters params, KeyChainGroup keyChainGroup, boolean isBsqWallet) {
+            // This is called at first startup when we create the wallet
+            if (isBsqWallet) {
+                checkArgument(BisqEnvironment.isBaseCurrencySupportingBsq(), "BisqEnvironment.isBaseCurrencySupportingBsq() is false but we get get " +
+                        "called BisqWalletFactory.create with isBsqWallet=true");
+                return new BsqWallet(params, keyChainGroup);
+            } else {
+                return new Wallet(params, keyChainGroup);
+            }
+        }
     }
 }

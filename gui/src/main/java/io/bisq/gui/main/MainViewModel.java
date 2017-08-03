@@ -440,26 +440,7 @@ public class MainViewModel implements ViewModel {
 
         bootstrapState.set(Res.get("mainView.bootstrapState.connectionToTorNetwork"));
 
-        p2PService.getNetworkNode().addConnectionListener(new ConnectionListener() {
-            @Override
-            public void onConnection(Connection connection) {
-            }
-
-            @Override
-            public void onDisconnect(CloseConnectionReason closeConnectionReason, Connection connection) {
-                // We only check at seed nodes as they are running the latest version
-                // Other disconnects might be caused by peers running an older version
-                if (connection.getPeerType() == Connection.PeerType.SEED_NODE &&
-                        closeConnectionReason == CloseConnectionReason.RULE_VIOLATION) {
-                    log.warn("RULE_VIOLATION onDisconnect closeConnectionReason=" + closeConnectionReason);
-                    log.warn("RULE_VIOLATION onDisconnect connection=" + connection);
-                }
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-            }
-        });
+        p2PService.getNetworkNode().addConnectionListener(new MyConnectionListener());
 
         final BooleanProperty p2pNetworkInitialized = new SimpleBooleanProperty();
         p2PService.start(new P2PServiceListener() {
@@ -1251,5 +1232,26 @@ public class MainViewModel implements ViewModel {
 
     String getAppDateDir() {
         return bisqEnvironment.getProperty(AppOptionKeys.APP_DATA_DIR_KEY);
+    }
+
+    private static class MyConnectionListener implements ConnectionListener {
+        @Override
+        public void onConnection(Connection connection) {
+        }
+
+        @Override
+        public void onDisconnect(CloseConnectionReason closeConnectionReason, Connection connection) {
+            // We only check at seed nodes as they are running the latest version
+            // Other disconnects might be caused by peers running an older version
+            if (connection.getPeerType() == Connection.PeerType.SEED_NODE &&
+                    closeConnectionReason == CloseConnectionReason.RULE_VIOLATION) {
+                log.warn("RULE_VIOLATION onDisconnect closeConnectionReason=" + closeConnectionReason);
+                log.warn("RULE_VIOLATION onDisconnect connection=" + connection);
+            }
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+        }
     }
 }

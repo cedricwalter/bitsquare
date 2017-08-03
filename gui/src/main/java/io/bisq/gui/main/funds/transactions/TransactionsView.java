@@ -333,28 +333,7 @@ public class TransactionsView extends ActivatableView<VBox, Void> {
     private void setDateColumnCellFactory() {
         dateColumn.setCellValueFactory((addressListItem) ->
                 new ReadOnlyObjectWrapper<>(addressListItem.getValue()));
-        dateColumn.setCellFactory(
-                new Callback<TableColumn<TransactionsListItem, TransactionsListItem>, TableCell<TransactionsListItem,
-                        TransactionsListItem>>() {
-
-                    @Override
-                    public TableCell<TransactionsListItem, TransactionsListItem> call(TableColumn<TransactionsListItem,
-                            TransactionsListItem> column) {
-                        return new TableCell<TransactionsListItem, TransactionsListItem>() {
-
-                            @Override
-                            public void updateItem(final TransactionsListItem item, boolean empty) {
-                                super.updateItem(item, empty);
-
-                                if (item != null && !empty) {
-                                    setText(item.getDateString());
-                                } else {
-                                    setText("");
-                                }
-                            }
-                        };
-                    }
-                });
+        dateColumn.setCellFactory(new TableColumnTableCellDateCallback());
     }
 
     private void setDetailsColumnCellFactory() {
@@ -466,54 +445,14 @@ public class TransactionsView extends ActivatableView<VBox, Void> {
         amountColumn.setCellValueFactory((addressListItem) ->
                 new ReadOnlyObjectWrapper<>(addressListItem.getValue()));
         amountColumn.setCellFactory(
-                new Callback<TableColumn<TransactionsListItem, TransactionsListItem>, TableCell<TransactionsListItem,
-                        TransactionsListItem>>() {
-
-                    @Override
-                    public TableCell<TransactionsListItem, TransactionsListItem> call(TableColumn<TransactionsListItem,
-                            TransactionsListItem> column) {
-                        return new TableCell<TransactionsListItem, TransactionsListItem>() {
-
-                            @Override
-                            public void updateItem(final TransactionsListItem item, boolean empty) {
-                                super.updateItem(item, empty);
-
-                                if (item != null && !empty) {
-                                    setText(item.getAmount());
-                                } else {
-                                    setText("");
-                                }
-                            }
-                        };
-                    }
-                });
+                new TableColumnTableCellAmountCallback());
     }
 
     private void setConfidenceColumnCellFactory() {
         confidenceColumn.setCellValueFactory((addressListItem) ->
                 new ReadOnlyObjectWrapper<>(addressListItem.getValue()));
         confidenceColumn.setCellFactory(
-                new Callback<TableColumn<TransactionsListItem, TransactionsListItem>, TableCell<TransactionsListItem,
-                        TransactionsListItem>>() {
-
-                    @Override
-                    public TableCell<TransactionsListItem, TransactionsListItem> call(TableColumn<TransactionsListItem,
-                            TransactionsListItem> column) {
-                        return new TableCell<TransactionsListItem, TransactionsListItem>() {
-
-                            @Override
-                            public void updateItem(final TransactionsListItem item, boolean empty) {
-                                super.updateItem(item, empty);
-
-                                if (item != null && !empty) {
-                                    setGraphic(item.getTxConfidenceIndicator());
-                                } else {
-                                    setGraphic(null);
-                                }
-                            }
-                        };
-                    }
-                });
+                new TableColumnTableCellCallback());
     }
 
     private void setRevertTxColumnCellFactory() {
@@ -671,5 +610,76 @@ public class TransactionsView extends ActivatableView<VBox, Void> {
                 .show();
     }
 
+    private static class TransactionsListItemTransactionsListItemTableCell extends TableCell<TransactionsListItem, TransactionsListItem> {
+
+        @Override
+        public void updateItem(final TransactionsListItem item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (item != null && !empty) {
+                setGraphic(item.getTxConfidenceIndicator());
+            } else {
+                setGraphic(null);
+            }
+        }
+    }
+
+    private static class TableColumnTableCellCallback implements Callback<TableColumn<TransactionsListItem, TransactionsListItem>, TableCell<TransactionsListItem,
+                            TransactionsListItem>> {
+
+        @Override
+        public TableCell<TransactionsListItem, TransactionsListItem> call(TableColumn<TransactionsListItem,
+                TransactionsListItem> column) {
+            return new TransactionsListItemTransactionsListItemTableCell();
+        }
+    }
+
+    private static class TransactionsListItemTransactionsListItemTableCellAmount extends TableCell<TransactionsListItem, TransactionsListItem> {
+
+        @Override
+        public void updateItem(final TransactionsListItem item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (item != null && !empty) {
+                setText(item.getAmount());
+            } else {
+                setText("");
+            }
+        }
+    }
+
+    private static class TableColumnTableCellAmountCallback implements Callback<TableColumn<TransactionsListItem, TransactionsListItem>, TableCell<TransactionsListItem,
+                            TransactionsListItem>> {
+
+        @Override
+        public TableCell<TransactionsListItem, TransactionsListItem> call(TableColumn<TransactionsListItem,
+                TransactionsListItem> column) {
+            return new TransactionsListItemTransactionsListItemTableCellAmount();
+        }
+    }
+
+    private static class TransactionsListItemTransactionsListItemTableCellDate extends TableCell<TransactionsListItem, TransactionsListItem> {
+
+        @Override
+        public void updateItem(final TransactionsListItem item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (item != null && !empty) {
+                setText(item.getDateString());
+            } else {
+                setText("");
+            }
+        }
+    }
+
+    private static class TableColumnTableCellDateCallback implements Callback<TableColumn<TransactionsListItem, TransactionsListItem>, TableCell<TransactionsListItem,
+                            TransactionsListItem>> {
+
+        @Override
+        public TableCell<TransactionsListItem, TransactionsListItem> call(TableColumn<TransactionsListItem,
+                TransactionsListItem> column) {
+            return new TransactionsListItemTransactionsListItemTableCellDate();
+        }
+    }
 }
 

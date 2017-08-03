@@ -91,17 +91,7 @@ public class SelectDepositTxWindow extends Overlay<SelectDepositTxWindow> {
         //noinspection unchecked
         transactionsComboBox = tuple.second;
         transactionsComboBox.setPromptText(Res.get("shared.select"));
-        transactionsComboBox.setConverter(new StringConverter<Transaction>() {
-            @Override
-            public String toString(Transaction transaction) {
-                return transaction.getHashAsString();
-            }
-
-            @Override
-            public Transaction fromString(String string) {
-                return null;
-            }
-        });
+        transactionsComboBox.setConverter(new TransactionStringConverter());
         transactionsComboBox.setItems(FXCollections.observableArrayList(transactions));
         transactionsComboBox.setOnAction(event -> {
             selectHandlerOptional.get().accept(transactionsComboBox.getSelectionModel().getSelectedItem());
@@ -109,5 +99,15 @@ public class SelectDepositTxWindow extends Overlay<SelectDepositTxWindow> {
         });
     }
 
+    private static class TransactionStringConverter extends StringConverter<Transaction> {
+        @Override
+        public String toString(Transaction transaction) {
+            return transaction.getHashAsString();
+        }
 
+        @Override
+        public Transaction fromString(String string) {
+            return null;
+        }
+    }
 }

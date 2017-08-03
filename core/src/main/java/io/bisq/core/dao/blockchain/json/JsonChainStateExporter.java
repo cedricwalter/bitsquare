@@ -160,16 +160,18 @@ public class JsonChainStateExporter {
                 return null;
             });
 
-            Futures.addCallback(future, new FutureCallback<Void>() {
-                public void onSuccess(Void ignore) {
-                    log.trace("onSuccess");
-                }
+            Futures.addCallback(future, new VoidFutureCallback());
+        }
+    }
 
-                public void onFailure(@NotNull Throwable throwable) {
-                    log.error(throwable.toString());
-                    throwable.printStackTrace();
-                }
-            });
+    private static class VoidFutureCallback implements FutureCallback<Void> {
+        public void onSuccess(Void ignore) {
+            log.trace("onSuccess");
+        }
+
+        public void onFailure(@NotNull Throwable throwable) {
+            log.error(throwable.toString());
+            throwable.printStackTrace();
         }
     }
 }

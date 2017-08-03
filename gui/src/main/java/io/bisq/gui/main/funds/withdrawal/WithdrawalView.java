@@ -468,22 +468,7 @@ public class WithdrawalView extends ActivatableView<VBox, Void> {
 
     private void setBalanceColumnCellFactory() {
         balanceColumn.setCellValueFactory((addressListItem) -> new ReadOnlyObjectWrapper<>(addressListItem.getValue()));
-        balanceColumn.setCellFactory(
-                new Callback<TableColumn<WithdrawalListItem, WithdrawalListItem>, TableCell<WithdrawalListItem,
-                        WithdrawalListItem>>() {
-
-                    @Override
-                    public TableCell<WithdrawalListItem, WithdrawalListItem> call(TableColumn<WithdrawalListItem,
-                            WithdrawalListItem> column) {
-                        return new TableCell<WithdrawalListItem, WithdrawalListItem>() {
-                            @Override
-                            public void updateItem(final WithdrawalListItem item, boolean empty) {
-                                super.updateItem(item, empty);
-                                setGraphic((item != null && !empty) ? item.getBalanceLabel() : null);
-                            }
-                        };
-                    }
-                });
+        balanceColumn.setCellFactory(new TableColumnTableCellCallback());
     }
 
     private void setSelectColumnCellFactory() {
@@ -520,6 +505,24 @@ public class WithdrawalView extends ActivatableView<VBox, Void> {
                         };
                     }
                 });
+    }
+
+    private static class WithdrawalListItemWithdrawalListItemTableCell extends TableCell<WithdrawalListItem, WithdrawalListItem> {
+        @Override
+        public void updateItem(final WithdrawalListItem item, boolean empty) {
+            super.updateItem(item, empty);
+            setGraphic((item != null && !empty) ? item.getBalanceLabel() : null);
+        }
+    }
+
+    private static class TableColumnTableCellCallback implements Callback<TableColumn<WithdrawalListItem, WithdrawalListItem>, TableCell<WithdrawalListItem,
+                            WithdrawalListItem>> {
+
+        @Override
+        public TableCell<WithdrawalListItem, WithdrawalListItem> call(TableColumn<WithdrawalListItem,
+                WithdrawalListItem> column) {
+            return new WithdrawalListItemWithdrawalListItemTableCell();
+        }
     }
 }
 

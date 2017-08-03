@@ -134,17 +134,7 @@ public class SepaForm extends PaymentMethodForm {
 
 
         countryComboBox.setPromptText(Res.get("payment.select.bank.country"));
-        countryComboBox.setConverter(new StringConverter<Country>() {
-            @Override
-            public String toString(Country country) {
-                return country.name + " (" + country.code + ")";
-            }
-
-            @Override
-            public Country fromString(String s) {
-                return null;
-            }
-        });
+        countryComboBox.setConverter(new CountryStringConverter());
         countryComboBox.setOnAction(e -> {
             Country selectedItem = countryComboBox.getSelectionModel().getSelectedItem();
             sepaAccount.setCountry(selectedItem);
@@ -193,17 +183,7 @@ public class SepaForm extends PaymentMethodForm {
                 updateCountriesSelection(true, euroCountryCheckBoxes);
                 autoFillNameTextField();
             });
-            currencyComboBox.setConverter(new StringConverter<TradeCurrency>() {
-                @Override
-                public String toString(TradeCurrency currency) {
-                    return currency.getNameAndCode();
-                }
-
-                @Override
-                public TradeCurrency fromString(String string) {
-                    return null;
-                }
-            });
+            currencyComboBox.setConverter(new TradeCurrencyStringConverter());
             currencyComboBox.getSelectionModel().select(0);
         }
     }
@@ -351,5 +331,29 @@ public class SepaForm extends PaymentMethodForm {
             acceptedCountries.setTooltip(tooltip);
         }
         addAllowedPeriod();
+    }
+
+    private static class TradeCurrencyStringConverter extends StringConverter<TradeCurrency> {
+        @Override
+        public String toString(TradeCurrency currency) {
+            return currency.getNameAndCode();
+        }
+
+        @Override
+        public TradeCurrency fromString(String string) {
+            return null;
+        }
+    }
+
+    private static class CountryStringConverter extends StringConverter<Country> {
+        @Override
+        public String toString(Country country) {
+            return country.name + " (" + country.code + ")";
+        }
+
+        @Override
+        public Country fromString(String s) {
+            return null;
+        }
     }
 }

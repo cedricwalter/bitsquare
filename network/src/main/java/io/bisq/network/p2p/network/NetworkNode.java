@@ -170,15 +170,7 @@ public abstract class NetworkNode implements MessageListener {
                 }
             });
 
-            Futures.addCallback(future, new FutureCallback<Connection>() {
-                public void onSuccess(Connection connection) {
-                    UserThread.execute(() -> resultFuture.set(connection));
-                }
-
-                public void onFailure(@NotNull Throwable throwable) {
-                    UserThread.execute(() -> resultFuture.setException(throwable));
-                }
-            });
+            Futures.addCallback(future, new ConnectionFutureCallback(resultFuture));
 
             return resultFuture;
         }
@@ -235,15 +227,7 @@ public abstract class NetworkNode implements MessageListener {
             return connection;
         });
         final SettableFuture<Connection> resultFuture = SettableFuture.create();
-        Futures.addCallback(future, new FutureCallback<Connection>() {
-            public void onSuccess(Connection connection) {
-                UserThread.execute(() -> resultFuture.set(connection));
-            }
-
-            public void onFailure(@NotNull Throwable throwable) {
-                UserThread.execute(() -> resultFuture.setException(throwable));
-            }
-        });
+        Futures.addCallback(future, new ConnectionFutureCallback(resultFuture));
         return resultFuture;
     }
 
@@ -421,4 +405,21 @@ public abstract class NetworkNode implements MessageListener {
     public NodeAddress getNodeAddress() {
         return nodeAddressProperty.get();
     }
+
+    private static class ConnectionFutureCallback implements FutureCallback<Connection> {
+        private final SettableFuture<Connection> resultFuture;
+
+        public ConnectionFutureCallback(SettableFuture<Connection> resultFuture) {
+            this.resultFuture = resultFuture;
+        }
+
+        public void onSuccess(Connection connection) {
+            UserThread.execute(() -> resultFuture.set(connection));
+        }
+
+        public void onFailure(@NotNull Throwable throwable) {
+            UserThread.execute(() -> resultFuture.setException(throwable));
+        }
+    }
+
 }

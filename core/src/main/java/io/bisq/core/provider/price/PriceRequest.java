@@ -38,17 +38,27 @@ public class PriceRequest {
             return provider.getAll();
         });
 
-        Futures.addCallback(future, new FutureCallback<Tuple2<Map<String, Long>, Map<String, MarketPrice>>>() {
-            public void onSuccess(Tuple2<Map<String, Long>, Map<String, MarketPrice>> marketPriceTuple) {
-                log.debug("Received marketPriceTuple of {}\nfrom provider {}", marketPriceTuple, provider);
-                resultFuture.set(marketPriceTuple);
-            }
-
-            public void onFailure(@NotNull Throwable throwable) {
-                resultFuture.setException(throwable);
-            }
-        });
+        Futures.addCallback(future, new Tuple2FutureCallback(provider, resultFuture));
 
         return resultFuture;
+    }
+
+    private static class Tuple2FutureCallback implements FutureCallback<Tuple2<Map<String, Long>, Map<String, MarketPrice>>> {
+        private final PriceProvider provider;
+        private final SettableFuture<Tuple2<Map<String, Long>, Map<String, MarketPrice>>> resultFuture;
+
+        public Tuple2FutureCallback(PriceProvider provider, SettableFuture<Tuple2<Map<String, Long>, Map<String, MarketPrice>>> resultFuture) {
+            this.provider = provider;
+            this.resultFuture = resultFuture;
+        }
+
+        public void onSuccess(Tuple2<Map<String, Long>, Map<String, MarketPrice>> marketPriceTuple) {
+            log.debug("Received marketPriceTuple of {}\nfrom provider {}", marketPriceTuple, provider);
+            resultFuture.set(marketPriceTuple);
+        }
+
+        public void onFailure(@NotNull Throwable throwable) {
+            resultFuture.setException(throwable);
+        }
     }
 }

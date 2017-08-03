@@ -98,21 +98,7 @@ public class LocalhostNetworkNode extends NetworkNode {
                     + "\n############################################################\n");
             return null;
         });
-        Futures.addCallback(future, new FutureCallback<TorNode<JavaOnionProxyManager, JavaOnionProxyContext>>() {
-            public void onSuccess(TorNode<JavaOnionProxyManager, JavaOnionProxyContext> torNode) {
-                UserThread.execute(() -> {
-                    // as we are simulating we return null
-                    resultHandler.accept(null);
-                });
-            }
-
-            public void onFailure(@NotNull Throwable throwable) {
-                UserThread.execute(() -> {
-                    log.error("[simulation] TorNode creation failed. " + throwable.getMessage());
-                    throwable.printStackTrace();
-                });
-            }
-        });
+        Futures.addCallback(future, new TorNodeFutureCallback(resultHandler));
     }
 
     private void createHiddenService(final Consumer<HiddenServiceDescriptor> resultHandler) {
@@ -127,20 +113,50 @@ public class LocalhostNetworkNode extends NetworkNode {
                     + "\n############################################################\n");
             return null;
         });
-        Futures.addCallback(future, new FutureCallback<HiddenServiceDescriptor>() {
-            public void onSuccess(HiddenServiceDescriptor hiddenServiceDescriptor) {
-                UserThread.execute(() -> {
-                    // as we are simulating we return null
-                    resultHandler.accept(null);
-                });
-            }
+        Futures.addCallback(future, new HiddenServiceDescriptorFutureCallback(resultHandler));
+    }
 
-            public void onFailure(@NotNull Throwable throwable) {
-                UserThread.execute(() -> {
-                    log.error("[simulation] Hidden service creation failed. " + throwable.getMessage());
-                    throwable.printStackTrace();
-                });
-            }
-        });
+    private static class HiddenServiceDescriptorFutureCallback implements FutureCallback<HiddenServiceDescriptor> {
+        private final Consumer<HiddenServiceDescriptor> resultHandler;
+
+        public HiddenServiceDescriptorFutureCallback(Consumer<HiddenServiceDescriptor> resultHandler) {
+            this.resultHandler = resultHandler;
+        }
+
+        public void onSuccess(HiddenServiceDescriptor hiddenServiceDescriptor) {
+            UserThread.execute(() -> {
+                // as we are simulating we return null
+                resultHandler.accept(null);
+            });
+        }
+
+        public void onFailure(@NotNull Throwable throwable) {
+            UserThread.execute(() -> {
+                log.error("[simulation] Hidden service creation failed. " + throwable.getMessage());
+                throwable.printStackTrace();
+            });
+        }
+    }
+
+    private static class TorNodeFutureCallback implements FutureCallback<TorNode<JavaOnionProxyManager, JavaOnionProxyContext>> {
+        private final Consumer<TorNode> resultHandler;
+
+        public TorNodeFutureCallback(Consumer<TorNode> resultHandler) {
+            this.resultHandler = resultHandler;
+        }
+
+        public void onSuccess(TorNode<JavaOnionProxyManager, JavaOnionProxyContext> torNode) {
+            UserThread.execute(() -> {
+                // as we are simulating we return null
+                resultHandler.accept(null);
+            });
+        }
+
+        public void onFailure(@NotNull Throwable throwable) {
+            UserThread.execute(() -> {
+                log.error("[simulation] TorNode creation failed. " + throwable.getMessage());
+                throwable.printStackTrace();
+            });
+        }
     }
 }

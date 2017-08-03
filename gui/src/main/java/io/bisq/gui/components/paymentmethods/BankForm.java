@@ -258,17 +258,7 @@ abstract class BankForm extends PaymentMethodForm {
         //noinspection unchecked,unchecked,unchecked
         ComboBox<Region> regionComboBox = tuple3.second;
         regionComboBox.setPromptText(Res.get("payment.select.region"));
-        regionComboBox.setConverter(new StringConverter<Region>() {
-            @Override
-            public String toString(Region region) {
-                return region.name;
-            }
-
-            @Override
-            public Region fromString(String s) {
-                return null;
-            }
-        });
+        regionComboBox.setConverter(new RegionStringConverter());
         regionComboBox.setItems(FXCollections.observableArrayList(CountryUtil.getAllRegions()));
 
 
@@ -277,17 +267,7 @@ abstract class BankForm extends PaymentMethodForm {
         countryComboBox.setVisibleRowCount(15);
         countryComboBox.setDisable(true);
         countryComboBox.setPromptText(Res.get("payment.select.country"));
-        countryComboBox.setConverter(new StringConverter<Country>() {
-            @Override
-            public String toString(Country country) {
-                return country.name + " (" + country.code + ")";
-            }
-
-            @Override
-            public Country fromString(String s) {
-                return null;
-            }
-        });
+        countryComboBox.setConverter(new CountryStringConverter());
         countryComboBox.setOnAction(e -> {
             Country selectedItem = countryComboBox.getSelectionModel().getSelectedItem();
             if (selectedItem != null) {
@@ -427,17 +407,7 @@ abstract class BankForm extends PaymentMethodForm {
                 autoFillNameTextField();
             }
         });
-        currencyComboBox.setConverter(new StringConverter<TradeCurrency>() {
-            @Override
-            public String toString(TradeCurrency currency) {
-                return currency.getNameAndCode();
-            }
-
-            @Override
-            public TradeCurrency fromString(String string) {
-                return null;
-            }
-        });
+        currencyComboBox.setConverter(new TradeCurrencyStringConverter());
         currencyComboBox.setDisable(true);
 
         addAcceptedBanksForAddAccount();
@@ -612,5 +582,41 @@ abstract class BankForm extends PaymentMethodForm {
     }
 
     public void addAcceptedBanksForDisplayAccount() {
+    }
+
+    private static class TradeCurrencyStringConverter extends StringConverter<TradeCurrency> {
+        @Override
+        public String toString(TradeCurrency currency) {
+            return currency.getNameAndCode();
+        }
+
+        @Override
+        public TradeCurrency fromString(String string) {
+            return null;
+        }
+    }
+
+    private static class CountryStringConverter extends StringConverter<Country> {
+        @Override
+        public String toString(Country country) {
+            return country.name + " (" + country.code + ")";
+        }
+
+        @Override
+        public Country fromString(String s) {
+            return null;
+        }
+    }
+
+    private static class RegionStringConverter extends StringConverter<Region> {
+        @Override
+        public String toString(Region region) {
+            return region.name;
+        }
+
+        @Override
+        public Region fromString(String s) {
+            return null;
+        }
     }
 }

@@ -162,18 +162,7 @@ public class PreferencesView extends ActivatableViewAndModel<GridPane, Activatab
         selectBaseCurrencyNetworkComboBox = addLabelComboBox(root, gridRow,
                 Res.getWithCol("settings.preferences.selectCurrencyNetwork"), Layout.FIRST_ROW_DISTANCE).second;
 
-        selectBaseCurrencyNetworkComboBox.setConverter(new StringConverter<BaseCurrencyNetwork>() {
-            @Override
-            public String toString(BaseCurrencyNetwork baseCurrencyNetwork) {
-                return DevEnv.DEV_MODE ? (baseCurrencyNetwork.getCurrencyName() + "_" + baseCurrencyNetwork.getNetwork()) :
-                        baseCurrencyNetwork.getCurrencyName();
-            }
-
-            @Override
-            public BaseCurrencyNetwork fromString(String string) {
-                return null;
-            }
-        });
+        selectBaseCurrencyNetworkComboBox.setConverter(new BaseCurrencyNetworkStringConverter());
 
         // userLanguage
         //noinspection unchecked
@@ -284,18 +273,7 @@ public class PreferencesView extends ActivatableViewAndModel<GridPane, Activatab
         //noinspection unchecked
         preferredTradeCurrencyComboBox = addLabelComboBox(root, gridRow, Res.get("setting.preferences.prefCurrency"),
                 Layout.FIRST_ROW_AND_GROUP_DISTANCE).second;
-        preferredTradeCurrencyComboBox.setConverter(new StringConverter<TradeCurrency>() {
-            @Override
-            public String toString(TradeCurrency tradeCurrency) {
-                // http://boschista.deviantart.com/journal/Cool-ASCII-Symbols-214218618
-                return tradeCurrency.getDisplayPrefix() + tradeCurrency.getNameAndCode();
-            }
-
-            @Override
-            public TradeCurrency fromString(String s) {
-                return null;
-            }
-        });
+        preferredTradeCurrencyComboBox.setConverter(new TradeCurrencyStringConverter());
 
         Tuple2<Label, ListView> fiatTuple = addLabelListView(root, ++gridRow, Res.get("setting.preferences.displayFiat"));
         GridPane.setValignment(fiatTuple.first, VPos.TOP);
@@ -399,34 +377,14 @@ public class PreferencesView extends ActivatableViewAndModel<GridPane, Activatab
         //noinspection unchecked
         fiatCurrenciesComboBox = addLabelComboBox(root, ++gridRow).second;
         fiatCurrenciesComboBox.setPromptText(Res.get("setting.preferences.addFiat"));
-        fiatCurrenciesComboBox.setConverter(new StringConverter<FiatCurrency>() {
-            @Override
-            public String toString(FiatCurrency tradeCurrency) {
-                return tradeCurrency.getNameAndCode();
-            }
-
-            @Override
-            public FiatCurrency fromString(String s) {
-                return null;
-            }
-        });
+        fiatCurrenciesComboBox.setConverter(new FiatCurrencyStringConverter());
 
         Tuple2<Label, ComboBox> labelComboBoxTuple2 = addLabelComboBox(root, gridRow);
         //noinspection unchecked
         cryptoCurrenciesComboBox = labelComboBoxTuple2.second;
         GridPane.setColumnIndex(cryptoCurrenciesComboBox, 3);
         cryptoCurrenciesComboBox.setPromptText(Res.get("setting.preferences.addAltcoin"));
-        cryptoCurrenciesComboBox.setConverter(new StringConverter<CryptoCurrency>() {
-            @Override
-            public String toString(CryptoCurrency tradeCurrency) {
-                return tradeCurrency.getNameAndCode();
-            }
-
-            @Override
-            public CryptoCurrency fromString(String s) {
-                return null;
-            }
-        });
+        cryptoCurrenciesComboBox.setConverter(new CryptoCurrencyStringConverter());
     }
 
 
@@ -471,17 +429,7 @@ public class PreferencesView extends ActivatableViewAndModel<GridPane, Activatab
 
         userLanguageComboBox.setItems(languageCodes);
         userLanguageComboBox.getSelectionModel().select(preferences.getUserLanguage());
-        userLanguageComboBox.setConverter(new StringConverter<String>() {
-            @Override
-            public String toString(String code) {
-                return LanguageUtil.getDisplayName(code);
-            }
-
-            @Override
-            public String fromString(String string) {
-                return null;
-            }
-        });
+        userLanguageComboBox.setConverter(new StringStringConverter());
 
         userLanguageComboBox.setOnAction(e -> {
             String selectedItem = userLanguageComboBox.getSelectionModel().getSelectedItem();
@@ -506,17 +454,7 @@ public class PreferencesView extends ActivatableViewAndModel<GridPane, Activatab
 
         userCountryComboBox.setItems(countries);
         userCountryComboBox.getSelectionModel().select(preferences.getUserCountry());
-        userCountryComboBox.setConverter(new StringConverter<Country>() {
-            @Override
-            public String toString(Country country) {
-                return CountryUtil.getNameByCode(country.code);
-            }
-
-            @Override
-            public Country fromString(String string) {
-                return null;
-            }
-        });
+        userCountryComboBox.setConverter(new CountryStringConverter());
         userCountryComboBox.setOnAction(e -> {
             Country country = userCountryComboBox.getSelectionModel().getSelectedItem();
             if (country != null) {
@@ -526,17 +464,7 @@ public class PreferencesView extends ActivatableViewAndModel<GridPane, Activatab
 
         blockChainExplorerComboBox.setItems(blockExplorers);
         blockChainExplorerComboBox.getSelectionModel().select(preferences.getBlockChainExplorer());
-        blockChainExplorerComboBox.setConverter(new StringConverter<BlockChainExplorer>() {
-            @Override
-            public String toString(BlockChainExplorer blockChainExplorer) {
-                return blockChainExplorer.name;
-            }
-
-            @Override
-            public BlockChainExplorer fromString(String string) {
-                return null;
-            }
-        });
+        blockChainExplorerComboBox.setConverter(new BlockChainExplorerStringConverter());
         blockChainExplorerComboBox.setOnAction(e -> preferences.setBlockChainExplorer(blockChainExplorerComboBox.getSelectionModel().getSelectedItem()));
 
         deviationInputTextField.setText(formatter.formatPercentagePrice(preferences.getMaxPriceDistanceInPercent()));
@@ -661,5 +589,91 @@ public class PreferencesView extends ActivatableViewAndModel<GridPane, Activatab
         showOwnOffersInOfferBook.setOnAction(null);
         autoSelectArbitratorsCheckBox.setOnAction(null);
         resetDontShowAgainButton.setOnAction(null);
+    }
+
+    private static class BlockChainExplorerStringConverter extends StringConverter<BlockChainExplorer> {
+        @Override
+        public String toString(BlockChainExplorer blockChainExplorer) {
+            return blockChainExplorer.name;
+        }
+
+        @Override
+        public BlockChainExplorer fromString(String string) {
+            return null;
+        }
+    }
+
+    private static class CountryStringConverter extends StringConverter<Country> {
+        @Override
+        public String toString(Country country) {
+            return CountryUtil.getNameByCode(country.code);
+        }
+
+        @Override
+        public Country fromString(String string) {
+            return null;
+        }
+    }
+
+    private static class StringStringConverter extends StringConverter<String> {
+        @Override
+        public String toString(String code) {
+            return LanguageUtil.getDisplayName(code);
+        }
+
+        @Override
+        public String fromString(String string) {
+            return null;
+        }
+    }
+
+    private static class CryptoCurrencyStringConverter extends StringConverter<CryptoCurrency> {
+        @Override
+        public String toString(CryptoCurrency tradeCurrency) {
+            return tradeCurrency.getNameAndCode();
+        }
+
+        @Override
+        public CryptoCurrency fromString(String s) {
+            return null;
+        }
+    }
+
+    private static class FiatCurrencyStringConverter extends StringConverter<FiatCurrency> {
+        @Override
+        public String toString(FiatCurrency tradeCurrency) {
+            return tradeCurrency.getNameAndCode();
+        }
+
+        @Override
+        public FiatCurrency fromString(String s) {
+            return null;
+        }
+    }
+
+    private static class TradeCurrencyStringConverter extends StringConverter<TradeCurrency> {
+        @Override
+        public String toString(TradeCurrency tradeCurrency) {
+            // http://boschista.deviantart.com/journal/Cool-ASCII-Symbols-214218618
+            return tradeCurrency.getDisplayPrefix() + tradeCurrency.getNameAndCode();
+        }
+
+        @Override
+        public TradeCurrency fromString(String s) {
+            return null;
+        }
+    }
+
+    private static class BaseCurrencyNetworkStringConverter extends StringConverter<BaseCurrencyNetwork> {
+        @Override
+        public String toString(BaseCurrencyNetwork baseCurrencyNetwork) {
+            return DevEnv.DEV_MODE ? (baseCurrencyNetwork.getCurrencyName() + "_" + baseCurrencyNetwork.getNetwork()) :
+                    baseCurrencyNetwork.getCurrencyName();
+        }
+
+        @Override
+        public BaseCurrencyNetwork fromString(String string) {
+            return null;
+        }
     }
 }

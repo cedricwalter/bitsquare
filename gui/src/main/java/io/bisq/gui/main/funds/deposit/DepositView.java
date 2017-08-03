@@ -304,26 +304,7 @@ public class DepositView extends ActivatableView<VBox, Void> {
 
     private void setUsageColumnCellFactory() {
         usageColumn.setCellValueFactory((addressListItem) -> new ReadOnlyObjectWrapper<>(addressListItem.getValue()));
-        usageColumn.setCellFactory(new Callback<TableColumn<DepositListItem, DepositListItem>,
-                TableCell<DepositListItem, DepositListItem>>() {
-
-            @Override
-            public TableCell<DepositListItem, DepositListItem> call(TableColumn<DepositListItem,
-                    DepositListItem> column) {
-                return new TableCell<DepositListItem, DepositListItem>() {
-
-                    @Override
-                    public void updateItem(final DepositListItem item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (item != null && !empty) {
-                            setGraphic(new Label(item.getUsage()));
-                        } else {
-                            setGraphic(null);
-                        }
-                    }
-                };
-            }
-        });
+        usageColumn.setCellFactory(new TableColumnTableCellUsageCallback());
     }
 
     private void setSelectColumnCellFactory() {
@@ -400,58 +381,88 @@ public class DepositView extends ActivatableView<VBox, Void> {
 
     private void setBalanceColumnCellFactory() {
         balanceColumn.setCellValueFactory((addressListItem) -> new ReadOnlyObjectWrapper<>(addressListItem.getValue()));
-        balanceColumn.setCellFactory(new Callback<TableColumn<DepositListItem, DepositListItem>,
-                TableCell<DepositListItem, DepositListItem>>() {
-
-            @Override
-            public TableCell<DepositListItem, DepositListItem> call(TableColumn<DepositListItem,
-                    DepositListItem> column) {
-                return new TableCell<DepositListItem, DepositListItem>() {
-
-                    @Override
-                    public void updateItem(final DepositListItem item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (item != null && !empty) {
-                            if (textProperty().isBound())
-                                textProperty().unbind();
-
-                            textProperty().bind(item.balanceProperty());
-                        } else {
-                            textProperty().unbind();
-                            setText("");
-                        }
-                    }
-                };
-            }
-        });
+        balanceColumn.setCellFactory(new TableColumnBalanceTableCellCallback());
     }
-
 
     private void setConfidenceColumnCellFactory() {
         confirmationsColumn.setCellValueFactory((addressListItem) ->
                 new ReadOnlyObjectWrapper<>(addressListItem.getValue()));
         confirmationsColumn.setCellFactory(
-                new Callback<TableColumn<DepositListItem, DepositListItem>, TableCell<DepositListItem,
-                        DepositListItem>>() {
+                new TableColumnTableCellCallback());
+    }
 
-                    @Override
-                    public TableCell<DepositListItem, DepositListItem> call(TableColumn<DepositListItem,
-                            DepositListItem> column) {
-                        return new TableCell<DepositListItem, DepositListItem>() {
+    private static class DepositListItemDepositListItemTableCell extends TableCell<DepositListItem, DepositListItem> {
 
-                            @Override
-                            public void updateItem(final DepositListItem item, boolean empty) {
-                                super.updateItem(item, empty);
+        @Override
+        public void updateItem(final DepositListItem item, boolean empty) {
+            super.updateItem(item, empty);
 
-                                if (item != null && !empty) {
-                                    setGraphic(item.getTxConfidenceIndicator());
-                                } else {
-                                    setGraphic(null);
-                                }
-                            }
-                        };
-                    }
-                });
+            if (item != null && !empty) {
+                setGraphic(item.getTxConfidenceIndicator());
+            } else {
+                setGraphic(null);
+            }
+        }
+    }
+
+    private static class TableColumnTableCellCallback implements Callback<TableColumn<DepositListItem, DepositListItem>, TableCell<DepositListItem,
+                            DepositListItem>> {
+
+        @Override
+        public TableCell<DepositListItem, DepositListItem> call(TableColumn<DepositListItem,
+                DepositListItem> column) {
+            return new DepositListItemDepositListItemTableCell();
+        }
+    }
+
+    private static class DepositListItemBalanceTableCell extends TableCell<DepositListItem, DepositListItem> {
+
+        @Override
+        public void updateItem(final DepositListItem item, boolean empty) {
+            super.updateItem(item, empty);
+            if (item != null && !empty) {
+                if (textProperty().isBound())
+                    textProperty().unbind();
+
+                textProperty().bind(item.balanceProperty());
+            } else {
+                textProperty().unbind();
+                setText("");
+            }
+        }
+    }
+
+    private static class TableColumnBalanceTableCellCallback implements Callback<TableColumn<DepositListItem, DepositListItem>,
+                    TableCell<DepositListItem, DepositListItem>> {
+
+        @Override
+        public TableCell<DepositListItem, DepositListItem> call(TableColumn<DepositListItem,
+                DepositListItem> column) {
+            return new DepositListItemBalanceTableCell();
+        }
+    }
+
+    private static class DepositListItemUsageTableCell extends TableCell<DepositListItem, DepositListItem> {
+
+        @Override
+        public void updateItem(final DepositListItem item, boolean empty) {
+            super.updateItem(item, empty);
+            if (item != null && !empty) {
+                setGraphic(new Label(item.getUsage()));
+            } else {
+                setGraphic(null);
+            }
+        }
+    }
+
+    private static class TableColumnTableCellUsageCallback implements Callback<TableColumn<DepositListItem, DepositListItem>,
+                    TableCell<DepositListItem, DepositListItem>> {
+
+        @Override
+        public TableCell<DepositListItem, DepositListItem> call(TableColumn<DepositListItem,
+                DepositListItem> column) {
+            return new DepositListItemUsageTableCell();
+        }
     }
 }
 

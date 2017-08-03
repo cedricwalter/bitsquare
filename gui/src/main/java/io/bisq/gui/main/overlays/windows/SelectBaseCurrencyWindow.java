@@ -95,22 +95,24 @@ public class SelectBaseCurrencyWindow extends Overlay<SelectBaseCurrencyWindow> 
                     .collect(Collectors.toList());
         comboBox.setItems(FXCollections.observableArrayList(baseCurrencyNetworks));
 
-        comboBox.setConverter(new StringConverter<BaseCurrencyNetwork>() {
-            @Override
-            public String toString(BaseCurrencyNetwork baseCurrencyNetwork) {
-                return DevEnv.DEV_MODE ? (baseCurrencyNetwork.getCurrencyName() + "_" + baseCurrencyNetwork.getNetwork()) :
-                        baseCurrencyNetwork.getCurrencyName();
-            }
-
-            @Override
-            public BaseCurrencyNetwork fromString(String string) {
-                return null;
-            }
-        });
+        comboBox.setConverter(new BaseCurrencyNetworkStringConverter());
 
         comboBox.setOnAction(event -> {
             selectHandlerOptional.get().accept(comboBox.getSelectionModel().getSelectedItem());
             hide();
         });
+    }
+
+    private static class BaseCurrencyNetworkStringConverter extends StringConverter<BaseCurrencyNetwork> {
+        @Override
+        public String toString(BaseCurrencyNetwork baseCurrencyNetwork) {
+            return DevEnv.DEV_MODE ? (baseCurrencyNetwork.getCurrencyName() + "_" + baseCurrencyNetwork.getNetwork()) :
+                    baseCurrencyNetwork.getCurrencyName();
+        }
+
+        @Override
+        public BaseCurrencyNetwork fromString(String string) {
+            return null;
+        }
     }
 }

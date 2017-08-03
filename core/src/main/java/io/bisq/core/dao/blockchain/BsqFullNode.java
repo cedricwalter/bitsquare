@@ -159,27 +159,7 @@ public class BsqFullNode extends BsqNode {
                 p2PService.getBroadcaster(),
                 p2PService.getSeedNodeAddresses(),
                 bsqChainState,
-                new RequestManager.Listener() {
-                    @Override
-                    public void onBlockReceived(GetBsqBlocksResponse getBsqBlocksResponse) {
-
-                    }
-
-                    @Override
-                    public void onNewBsqBlockBroadcastMessage(NewBsqBlockBroadcastMessage newBsqBlockBroadcastMessage) {
-
-                    }
-
-                    @Override
-                    public void onNoSeedNodeAvailable() {
-
-                    }
-
-                    @Override
-                    public void onFault(String errorMessage, @Nullable Connection connection) {
-
-                    }
-                });
+                new RequestListener());
     }
 
     private void addBlockHandler() {
@@ -204,5 +184,27 @@ public class BsqFullNode extends BsqNode {
         jsonChainStateExporter.maybeExport();
         if (parseBlockchainComplete && p2pNetworkReady && requestBlocksManager != null)
             requestBlocksManager.publishNewBlock(bsqBlock);
+    }
+
+    private static class RequestListener implements RequestManager.Listener {
+        @Override
+        public void onBlockReceived(GetBsqBlocksResponse getBsqBlocksResponse) {
+
+        }
+
+        @Override
+        public void onNewBsqBlockBroadcastMessage(NewBsqBlockBroadcastMessage newBsqBlockBroadcastMessage) {
+
+        }
+
+        @Override
+        public void onNoSeedNodeAvailable() {
+
+        }
+
+        @Override
+        public void onFault(String errorMessage, @Nullable Connection connection) {
+
+        }
     }
 }

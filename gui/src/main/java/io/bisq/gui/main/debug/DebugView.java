@@ -199,18 +199,20 @@ public class DebugView extends InitializableView<GridPane, Void> {
         comboBox.setVisibleRowCount(list.size());
         comboBox.setItems(list);
         comboBox.setPromptText("Select task to intercept");
-        comboBox.setConverter(new StringConverter<Class>() {
-            @Override
-            public String toString(Class item) {
-                return item.getSimpleName();
-            }
-
-            @Override
-            public Class fromString(String s) {
-                return null;
-            }
-        });
+        comboBox.setConverter(new ClassStringConverter());
         comboBox.setOnAction(event -> Task.taskToIntercept = comboBox.getSelectionModel().getSelectedItem());
+    }
+
+    private static class ClassStringConverter extends StringConverter<Class> {
+        @Override
+        public String toString(Class item) {
+            return item.getSimpleName();
+        }
+
+        @Override
+        public Class fromString(String s) {
+            return null;
+        }
     }
 }
 

@@ -65,17 +65,7 @@ public abstract class PaymentMethodForm {
         currencyComboBox = addLabelComboBox(gridPane, ++gridRow, Res.getWithCol("shared.currency")).second;
         currencyComboBox.setPromptText(Res.get("list.currency.select"));
         currencyComboBox.setItems(FXCollections.observableArrayList(CurrencyUtil.getMainFiatCurrencies()));
-        currencyComboBox.setConverter(new StringConverter<TradeCurrency>() {
-            @Override
-            public String toString(TradeCurrency tradeCurrency) {
-                return tradeCurrency.getNameAndCode();
-            }
-
-            @Override
-            public TradeCurrency fromString(String s) {
-                return null;
-            }
-        });
+        currencyComboBox.setConverter(new TradeCurrencyStringConverter());
         currencyComboBox.setOnAction(e -> {
             paymentAccount.setSingleTradeCurrency(currencyComboBox.getSelectionModel().getSelectedItem());
             updateFromInputs();
@@ -176,5 +166,17 @@ public abstract class PaymentMethodForm {
 
     public BooleanProperty allInputsValidProperty() {
         return allInputsValid;
+    }
+
+    private static class TradeCurrencyStringConverter extends StringConverter<TradeCurrency> {
+        @Override
+        public String toString(TradeCurrency tradeCurrency) {
+            return tradeCurrency.getNameAndCode();
+        }
+
+        @Override
+        public TradeCurrency fromString(String s) {
+            return null;
+        }
     }
 }

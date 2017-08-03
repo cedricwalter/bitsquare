@@ -171,17 +171,7 @@ public class ArbitratorRegistrationView extends ActivatableViewAndModel<VBox, Ar
         languageComboBox = addLabelComboBox(gridPane, ++gridRow).second;
         languageComboBox.disableProperty().bind(model.registrationEditDisabled);
         languageComboBox.setPromptText(Res.get("shared.addLanguage"));
-        languageComboBox.setConverter(new StringConverter<String>() {
-            @Override
-            public String toString(String code) {
-                return LanguageUtil.getDisplayName(code);
-            }
-
-            @Override
-            public String fromString(String s) {
-                return null;
-            }
-        });
+        languageComboBox.setConverter(new StringStringConverter());
         languageComboBox.setOnAction(e -> onAddLanguage());
 
         Button registerButton = addButtonAfterGroup(gridPane, ++gridRow, Res.get("account.arbitratorRegistration.register"));
@@ -236,6 +226,18 @@ public class ArbitratorRegistrationView extends ActivatableViewAndModel<VBox, Ar
                             Res.get("shared.errorMessageInline", errorMessage))).show());
         } else {
             new Popup<>().information(Res.get("popup.warning.notFullyConnected")).show();
+        }
+    }
+
+    private static class StringStringConverter extends StringConverter<String> {
+        @Override
+        public String toString(String code) {
+            return LanguageUtil.getDisplayName(code);
+        }
+
+        @Override
+        public String fromString(String s) {
+            return null;
         }
     }
 }

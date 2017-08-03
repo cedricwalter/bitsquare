@@ -82,37 +82,47 @@ public class TradeStatisticsMigrationTool {
         if (p2PService.isBootstrapped()) {
             persistedTradeStatisticsList.forEach(e -> p2PService.addData(e, true));
         } else {
-            p2PService.addP2PServiceListener(new P2PServiceListener() {
-                @Override
-                public void onRequestingDataCompleted() {
-                }
+            p2PService.addP2PServiceListener(new MyP2PServiceListener(persistedTradeStatisticsList, p2PService));
+        }
+    }
 
-                @Override
-                public void onNoSeedNodeAvailable() {
-                }
+    private static class MyP2PServiceListener implements P2PServiceListener {
+        private final List<TradeStatistics> persistedTradeStatisticsList;
+        private final P2PService p2PService;
 
-                @Override
-                public void onNoPeersAvailable() {
-                }
+        public MyP2PServiceListener(List<TradeStatistics> persistedTradeStatisticsList, P2PService p2PService) {
+            this.persistedTradeStatisticsList = persistedTradeStatisticsList;
+            this.p2PService = p2PService;
+        }
 
-                @Override
-                public void onBootstrapComplete() {
-                    if (persistedTradeStatisticsList != null)
-                        persistedTradeStatisticsList.forEach(e -> p2PService.addData(e, true));
-                }
+        @Override
+        public void onRequestingDataCompleted() {
+        }
 
-                @Override
-                public void onTorNodeReady() {
-                }
+        @Override
+        public void onNoSeedNodeAvailable() {
+        }
 
-                @Override
-                public void onHiddenServicePublished() {
-                }
+        @Override
+        public void onNoPeersAvailable() {
+        }
 
-                @Override
-                public void onSetupFailed(Throwable throwable) {
-                }
-            });
+        @Override
+        public void onBootstrapComplete() {
+            if (persistedTradeStatisticsList != null)
+                persistedTradeStatisticsList.forEach(e -> p2PService.addData(e, true));
+        }
+
+        @Override
+        public void onTorNodeReady() {
+        }
+
+        @Override
+        public void onHiddenServicePublished() {
+        }
+
+        @Override
+        public void onSetupFailed(Throwable throwable) {
         }
     }
 }

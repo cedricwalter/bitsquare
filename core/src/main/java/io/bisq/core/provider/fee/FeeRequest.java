@@ -40,17 +40,27 @@ public class FeeRequest {
             return provider.getFees();
         });
 
-        Futures.addCallback(future, new FutureCallback<Tuple2<Map<String, Long>, Map<String, Long>>>() {
-            public void onSuccess(Tuple2<Map<String, Long>, Map<String, Long>> feeData) {
-                log.debug("Received feeData of {}\nfrom provider {}", feeData, provider);
-                resultFuture.set(feeData);
-            }
-
-            public void onFailure(@NotNull Throwable throwable) {
-                resultFuture.setException(throwable);
-            }
-        });
+        Futures.addCallback(future, new Tuple2FutureCallback(provider, resultFuture));
 
         return resultFuture;
+    }
+
+    private static class Tuple2FutureCallback implements FutureCallback<Tuple2<Map<String, Long>, Map<String, Long>>> {
+        private final FeeProvider provider;
+        private final SettableFuture<Tuple2<Map<String, Long>, Map<String, Long>>> resultFuture;
+
+        public Tuple2FutureCallback(FeeProvider provider, SettableFuture<Tuple2<Map<String, Long>, Map<String, Long>>> resultFuture) {
+            this.provider = provider;
+            this.resultFuture = resultFuture;
+        }
+
+        public void onSuccess(Tuple2<Map<String, Long>, Map<String, Long>> feeData) {
+            log.debug("Received feeData of {}\nfrom provider {}", feeData, provider);
+            resultFuture.set(feeData);
+        }
+
+        public void onFailure(@NotNull Throwable throwable) {
+            resultFuture.setException(throwable);
+        }
     }
 }

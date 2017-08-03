@@ -83,66 +83,10 @@ public class AppSetupWithP2P extends AppSetup {
 
     private BooleanProperty initP2PNetwork() {
         log.info("initP2PNetwork");
-        p2PService.getNetworkNode().addConnectionListener(new ConnectionListener() {
-            @Override
-            public void onConnection(Connection connection) {
-            }
-
-            @Override
-            public void onDisconnect(CloseConnectionReason closeConnectionReason, Connection connection) {
-                // We only check at seed nodes as they are running the latest version
-                // Other disconnects might be caused by peers running an older version
-                if (connection.getPeerType() == Connection.PeerType.SEED_NODE &&
-                        closeConnectionReason == CloseConnectionReason.RULE_VIOLATION) {
-                    log.warn("RULE_VIOLATION onDisconnect closeConnectionReason=" + closeConnectionReason);
-                    log.warn("RULE_VIOLATION onDisconnect connection=" + connection);
-                }
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-            }
-        });
+        p2PService.getNetworkNode().addConnectionListener(new MyConnectionListener());
 
         final BooleanProperty p2pNetworkInitialized = new SimpleBooleanProperty();
-        p2PService.start(new P2PServiceListener() {
-            @Override
-            public void onTorNodeReady() {
-            }
-
-            @Override
-            public void onHiddenServicePublished() {
-                log.info("onHiddenServicePublished");
-            }
-
-            @Override
-            public void onRequestingDataCompleted() {
-                log.info("onRequestingDataCompleted");
-                p2pNetworkInitialized.set(true);
-            }
-
-            @Override
-            public void onNoSeedNodeAvailable() {
-                log.info("onNoSeedNodeAvailable");
-                p2pNetworkInitialized.set(true);
-            }
-
-            @Override
-            public void onNoPeersAvailable() {
-                log.info("onNoPeersAvailable");
-                p2pNetworkInitialized.set(true);
-            }
-
-            @Override
-            public void onBootstrapComplete() {
-                log.info("onBootstrapComplete");
-            }
-
-            @Override
-            public void onSetupFailed(Throwable throwable) {
-                log.error(throwable.toString());
-            }
-        });
+        p2PService.start(new MyP2PServiceListener(p2pNetworkInitialized));
 
         return p2pNetworkInitialized;
     }
@@ -154,5 +98,71 @@ public class AppSetupWithP2P extends AppSetup {
         p2PService.readEntryMapFromResources(storageFileName);
         
         p2PService.onAllServicesInitialized();
+    }
+
+    private static class MyP2PServiceListener implements P2PServiceListener {
+        private final BooleanProperty p2pNetworkInitialized;
+
+        public MyP2PServiceListener(BooleanProperty p2pNetworkInitialized) {
+            this.p2pNetworkInitialized = p2pNetworkInitialized;
+        }
+
+        @Override
+        public void onTorNodeReady() {
+        }
+
+        @Override
+        public void onHiddenServicePublished() {
+            log.info("onHiddenServicePublished");
+        }
+
+        @Override
+        public void onRequestingDataCompleted() {
+            log.info("onRequestingDataCompleted");
+            p2pNetworkInitialized.set(true);
+        }
+
+        @Override
+        public void onNoSeedNodeAvailable() {
+            log.info("onNoSeedNodeAvailable");
+            p2pNetworkInitialized.set(true);
+        }
+
+        @Override
+        public void onNoPeersAvailable() {
+            log.info("onNoPeersAvailable");
+            p2pNetworkInitialized.set(true);
+        }
+
+        @Override
+        public void onBootstrapComplete() {
+            log.info("onBootstrapComplete");
+        }
+
+        @Override
+        public void onSetupFailed(Throwable throwable) {
+            log.error(throwable.toString());
+        }
+    }
+
+    private static class MyConnectionListener implements ConnectionListener {
+        @Override
+        public void onConnection(Connection connection) {
+        }
+
+        @Override
+        public void onDisconnect(CloseConnectionReason closeConnectionReason, Connection connection) {
+            // We only check at seed nodes as they are running the latest version
+            // Other disconnects might be caused by peers running an older version
+            if (connection.getPeerType() == Connection.PeerType.SEED_NODE &&
+                    closeConnectionReason == CloseConnectionReason.RULE_VIOLATION) {
+                log.warn("RULE_VIOLATION onDisconnect closeConnectionReason=" + closeConnectionReason);
+                log.warn("RULE_VIOLATION onDisconnect connection=" + connection);
+            }
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+        }
     }
 }

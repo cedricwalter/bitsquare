@@ -124,23 +124,7 @@ public class OfferBookView extends ActivatableViewAndModel<GridPane, OfferBookVi
         paymentMethodComboBox = addLabelComboBox(root, ++gridRow, Res.get("offerbook.filterByPaymentMethod")).second;
         paymentMethodComboBox.setPromptText(Res.get("shared.selectPaymentMethod"));
         paymentMethodComboBox.setVisibleRowCount(20);
-        paymentMethodComboBox.setConverter(new StringConverter<PaymentMethod>() {
-            @Override
-            public String toString(PaymentMethod paymentMethod) {
-                String id = paymentMethod.getId();
-                if (id.equals(GUIUtil.SHOW_ALL_FLAG))
-                    return "▶ " + Res.get("list.currency.showAll");
-                else if (paymentMethod.equals(PaymentMethod.BLOCK_CHAINS))
-                    return "✦ " + Res.get(id);
-                else
-                    return "★ " + Res.get(id);
-            }
-
-            @Override
-            public PaymentMethod fromString(String s) {
-                return null;
-            }
-        });
+        paymentMethodComboBox.setConverter(new PaymentMethodStringConverter());
 
         tableView = new TableView<>();
 
@@ -443,11 +427,7 @@ public class OfferBookView extends ActivatableViewAndModel<GridPane, OfferBookVi
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     private TableColumn<OfferBookListItem, OfferBookListItem> getAmountColumn() {
-        TableColumn<OfferBookListItem, OfferBookListItem> column = new TableColumn<OfferBookListItem, OfferBookListItem>(Res.get("shared.BTCMinMax")) {
-            {
-                setMinWidth(150);
-            }
-        };
+        TableColumn<OfferBookListItem, OfferBookListItem> column = new OfferBookListItemOfferBookListItemTableColumnWidth150();
         column.setCellValueFactory((offer) -> new ReadOnlyObjectWrapper<>(offer.getValue()));
         column.setCellFactory(
                 new Callback<TableColumn<OfferBookListItem, OfferBookListItem>, TableCell<OfferBookListItem,
@@ -502,11 +482,7 @@ public class OfferBookView extends ActivatableViewAndModel<GridPane, OfferBookVi
     }
 
     private TableColumn<OfferBookListItem, OfferBookListItem> getPriceColumn() {
-        TableColumn<OfferBookListItem, OfferBookListItem> column = new TableColumn<OfferBookListItem, OfferBookListItem>() {
-            {
-                setMinWidth(120);
-            }
-        };
+        TableColumn<OfferBookListItem, OfferBookListItem> column = new OfferBookListItemOfferBookListItemTableColumnWidth120();
         column.setCellValueFactory((offer) -> new ReadOnlyObjectWrapper<>(offer.getValue()));
         column.setCellFactory(
                 new Callback<TableColumn<OfferBookListItem, OfferBookListItem>, TableCell<OfferBookListItem,
@@ -571,11 +547,7 @@ public class OfferBookView extends ActivatableViewAndModel<GridPane, OfferBookVi
     }
 
     private TableColumn<OfferBookListItem, OfferBookListItem> getVolumeColumn() {
-        TableColumn<OfferBookListItem, OfferBookListItem> column = new TableColumn<OfferBookListItem, OfferBookListItem>() {
-            {
-                setMinWidth(125);
-            }
-        };
+        TableColumn<OfferBookListItem, OfferBookListItem> column = new OfferBookListItemOfferBookListItemTableColumnWidth125();
         column.setCellValueFactory((offer) -> new ReadOnlyObjectWrapper<>(offer.getValue()));
         column.setCellFactory(
                 new Callback<TableColumn<OfferBookListItem, OfferBookListItem>, TableCell<OfferBookListItem,
@@ -620,11 +592,7 @@ public class OfferBookView extends ActivatableViewAndModel<GridPane, OfferBookVi
     }
 
     private TableColumn<OfferBookListItem, OfferBookListItem> getPaymentMethodColumn() {
-        TableColumn<OfferBookListItem, OfferBookListItem> column = new TableColumn<OfferBookListItem, OfferBookListItem>(Res.get("shared.paymentMethod")) {
-            {
-                setMinWidth(125);
-            }
-        };
+        TableColumn<OfferBookListItem, OfferBookListItem> column = new OfferBookListItemOfferBookListItemTableColumPaymentMethod();
         column.setCellValueFactory((offer) -> new ReadOnlyObjectWrapper<>(offer.getValue()));
         column.setCellFactory(
                 new Callback<TableColumn<OfferBookListItem, OfferBookListItem>, TableCell<OfferBookListItem, OfferBookListItem>>() {
@@ -655,12 +623,7 @@ public class OfferBookView extends ActivatableViewAndModel<GridPane, OfferBookVi
     }
 
     private TableColumn<OfferBookListItem, OfferBookListItem> getActionColumn() {
-        TableColumn<OfferBookListItem, OfferBookListItem> column = new TableColumn<OfferBookListItem, OfferBookListItem>(Res.get("offerbook.wantTo")) {
-            {
-                setMinWidth(80);
-                setSortable(false);
-            }
-        };
+        TableColumn<OfferBookListItem, OfferBookListItem> column = new OfferBookListItemOfferBookListItemTableColumnWantTo();
         column.setCellValueFactory((offer) -> new ReadOnlyObjectWrapper<>(offer.getValue()));
         column.setCellFactory(
                 new Callback<TableColumn<OfferBookListItem, OfferBookListItem>, TableCell<OfferBookListItem,
@@ -760,13 +723,7 @@ public class OfferBookView extends ActivatableViewAndModel<GridPane, OfferBookVi
     }
 
     private TableColumn<OfferBookListItem, OfferBookListItem> getAvatarColumn() {
-        TableColumn<OfferBookListItem, OfferBookListItem> column = new TableColumn<OfferBookListItem, OfferBookListItem>("") {
-            {
-                setMinWidth(40);
-                setMaxWidth(40);
-                setSortable(true);
-            }
-        };
+        TableColumn<OfferBookListItem, OfferBookListItem> column = new OfferBookListItemOfferBookListItemTableColumn();
         column.setCellValueFactory((offer) -> new ReadOnlyObjectWrapper<>(offer.getValue()));
         column.setCellFactory(
                 new Callback<TableColumn<OfferBookListItem, OfferBookListItem>, TableCell<OfferBookListItem,
@@ -798,6 +755,79 @@ public class OfferBookView extends ActivatableViewAndModel<GridPane, OfferBookVi
                     }
                 });
         return column;
+    }
+
+    private static class OfferBookListItemOfferBookListItemTableColumn extends TableColumn<OfferBookListItem, OfferBookListItem> {
+        {
+            setMinWidth(40);
+            setMaxWidth(40);
+            setSortable(true);
+        }
+
+        public OfferBookListItemOfferBookListItemTableColumn() {
+            super("");
+        }
+    }
+
+    private static class OfferBookListItemOfferBookListItemTableColumnWantTo extends TableColumn<OfferBookListItem, OfferBookListItem> {
+        {
+            setMinWidth(80);
+            setSortable(false);
+        }
+
+        public OfferBookListItemOfferBookListItemTableColumnWantTo() {
+            super(Res.get("offerbook.wantTo"));
+        }
+    }
+
+    private static class OfferBookListItemOfferBookListItemTableColumPaymentMethod extends TableColumn<OfferBookListItem, OfferBookListItem> {
+        {
+            setMinWidth(125);
+        }
+
+        public OfferBookListItemOfferBookListItemTableColumPaymentMethod() {
+            super(Res.get("shared.paymentMethod"));
+        }
+    }
+
+    private static class OfferBookListItemOfferBookListItemTableColumnWidth125 extends TableColumn<OfferBookListItem, OfferBookListItem> {
+        {
+            setMinWidth(125);
+        }
+    }
+
+    private static class OfferBookListItemOfferBookListItemTableColumnWidth120 extends TableColumn<OfferBookListItem, OfferBookListItem> {
+        {
+            setMinWidth(120);
+        }
+    }
+
+    private static class OfferBookListItemOfferBookListItemTableColumnWidth150 extends TableColumn<OfferBookListItem, OfferBookListItem> {
+        {
+            setMinWidth(150);
+        }
+
+        public OfferBookListItemOfferBookListItemTableColumnWidth150() {
+            super(Res.get("shared.BTCMinMax"));
+        }
+    }
+
+    private static class PaymentMethodStringConverter extends StringConverter<PaymentMethod> {
+        @Override
+        public String toString(PaymentMethod paymentMethod) {
+            String id = paymentMethod.getId();
+            if (id.equals(GUIUtil.SHOW_ALL_FLAG))
+                return "▶ " + Res.get("list.currency.showAll");
+            else if (paymentMethod.equals(PaymentMethod.BLOCK_CHAINS))
+                return "✦ " + Res.get(id);
+            else
+                return "★ " + Res.get(id);
+        }
+
+        @Override
+        public PaymentMethod fromString(String s) {
+            return null;
+        }
     }
 }
 

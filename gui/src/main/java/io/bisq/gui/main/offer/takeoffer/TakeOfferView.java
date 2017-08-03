@@ -683,20 +683,7 @@ public class TakeOfferView extends ActivatableViewAndModel<AnchorPane, TakeOffer
         //noinspection unchecked
         paymentAccountsComboBox = tuple.second;
         paymentAccountsComboBox.setPromptText(Res.get("shared.selectTradingAccount"));
-        paymentAccountsComboBox.setConverter(new StringConverter<PaymentAccount>() {
-            @Override
-            public String toString(PaymentAccount paymentAccount) {
-                TradeCurrency singleTradeCurrency = paymentAccount.getSingleTradeCurrency();
-                String code = singleTradeCurrency != null ? singleTradeCurrency.getCode() : "";
-                return paymentAccount.getAccountName() + " (" + code + ", " +
-                        Res.get(paymentAccount.getPaymentMethod().getId()) + ")";
-            }
-
-            @Override
-            public PaymentAccount fromString(String s) {
-                return null;
-            }
-        });
+        paymentAccountsComboBox.setConverter(new PaymentAccountStringConverter());
         paymentAccountsComboBox.setVisible(false);
         paymentAccountsComboBox.setManaged(false);
         paymentAccountsComboBox.setOnAction(e -> {
@@ -1189,6 +1176,21 @@ public class TakeOfferView extends ActivatableViewAndModel<AnchorPane, TakeOffer
         double x = point.getX() + window.getX() + totalToPayInfoIconLabel.getWidth() + 2;
         double y = point.getY() + window.getY() + Math.floor(totalToPayInfoIconLabel.getHeight() / 2) - 9;
         return new Point2D(x, y);
+    }
+
+    private static class PaymentAccountStringConverter extends StringConverter<PaymentAccount> {
+        @Override
+        public String toString(PaymentAccount paymentAccount) {
+            TradeCurrency singleTradeCurrency = paymentAccount.getSingleTradeCurrency();
+            String code = singleTradeCurrency != null ? singleTradeCurrency.getCode() : "";
+            return paymentAccount.getAccountName() + " (" + code + ", " +
+                    Res.get(paymentAccount.getPaymentMethod().getId()) + ")";
+        }
+
+        @Override
+        public PaymentAccount fromString(String s) {
+            return null;
+        }
     }
 }
 

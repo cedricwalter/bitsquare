@@ -432,19 +432,7 @@ public abstract class WalletService {
         sendRequest.aesKey = aesKey;
         Wallet.SendResult sendResult = wallet.sendCoins(sendRequest);
         printTx("empty wallet", sendResult.tx);
-        Futures.addCallback(sendResult.broadcastComplete, new FutureCallback<Transaction>() {
-            @Override
-            public void onSuccess(Transaction result) {
-                log.info("emptyWallet onSuccess Transaction=" + result);
-                resultHandler.handleResult();
-            }
-
-            @Override
-            public void onFailure(@NotNull Throwable t) {
-                log.error("emptyWallet onFailure " + t.toString());
-                errorMessageHandler.handleErrorMessage(t.getMessage());
-            }
-        });
+        Futures.addCallback(sendResult.broadcastComplete, new TransactionFutureCallback(resultHandler, errorMessageHandler));
     }
 
 
@@ -603,6 +591,28 @@ public abstract class WalletService {
     public static String getAddressStringFromOutput(TransactionOutput output) {
         return isOutputScriptConvertibleToAddress(output) ?
                 output.getScriptPubKey().getToAddress(BisqEnvironment.getParameters()).toString() : null;
+    }
+
+    private static class TransactionFutureCallback implements FutureCallback<Transaction> {
+        private final ResultHandler resultHandler;
+        private final ErrorMessageHandler errorMessageHandler;
+
+        public TransactionFutureCallback(ResultHandler resultHandler, ErrorMessageHandler errorMessageHandler) {
+            this.resultHandler = resultHandler;
+            this.errorMessageHandler = errorMessageHandler;
+        }
+
+        @Override
+        public void onSuccess(Transaction result) {
+            log.info("emptyWallet onSuccess Transaction=" + result);
+            resultHandler.handleResult();
+        }
+
+        @Override
+        public void onFailure(@NotNull Throwable t) {
+            log.error("emptyWallet onFailure " + t.toString());
+            errorMessageHandler.handleErrorMessage(t.getMessage());
+        }
     }
 
 

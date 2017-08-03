@@ -141,25 +141,7 @@ public class SpendFromDepositTxWindow extends Overlay<SpendFromDepositTxWindow> 
 
         actionButtonText("Sign and publish transaction");
 
-        FutureCallback<Transaction> callback = new FutureCallback<Transaction>() {
-            @Override
-            public void onSuccess(@Nullable Transaction result) {
-                log.error("onSuccess");
-                UserThread.execute(() -> {
-                    String txId = result != null ? result.getHashAsString() : "null";
-                    new Popup<>()
-                            .information("Transaction successful published. Transaction ID: " + txId)
-                            .show();
-                });
-            }
-
-            @Override
-            public void onFailure(@NotNull Throwable t) {
-                log.error(t.toString());
-                log.error("onFailure");
-                UserThread.execute(() -> new Popup<>().warning(t.toString()).show());
-            }
-        };
+        FutureCallback<Transaction> callback = new TransactionFutureCallback();
         onAction(() -> {
             try {
                 tradeWalletService.emergencySignAndPublishPayoutTx(depositTxHex.getText(),
@@ -190,5 +172,25 @@ public class SpendFromDepositTxWindow extends Overlay<SpendFromDepositTxWindow> 
     protected void addCloseButton() {
         super.addCloseButton();
         actionButton.setOnAction(event -> actionHandlerOptional.ifPresent(Runnable::run));
+    }
+
+    private static class TransactionFutureCallback implements FutureCallback<Transaction> {
+        @Override
+        public void onSuccess(@Nullable Transaction result) {
+            log.error("onSuccess");
+            UserThread.execute(() -> {
+                String txId = result != null ? result.getHashAsString() : "null";
+                new Popup<>()
+                        .information("Transaction successful published. Transaction ID: " + txId)
+                        .show();
+            });
+        }
+
+        @Override
+        public void onFailure(@NotNull Throwable t) {
+            log.error(t.toString());
+            log.error("onFailure");
+            UserThread.execute(() -> new Popup<>().warning(t.toString()).show());
+        }
     }
 }

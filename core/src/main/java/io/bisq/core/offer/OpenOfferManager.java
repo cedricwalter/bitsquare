@@ -440,17 +440,7 @@ public class OpenOfferManager implements PeerManager.Listener, DecryptedDirectMe
                     p2PService.sendEncryptedDirectMessage(sender,
                             message.getPubKeyRing(),
                             new OfferAvailabilityResponse(message.offerId, availabilityResult),
-                            new SendDirectMessageListener() {
-                                @Override
-                                public void onArrived() {
-                                    log.trace("OfferAvailabilityResponse successfully arrived at peer");
-                                }
-
-                                @Override
-                                public void onFault() {
-                                    log.debug("Sending OfferAvailabilityResponse failed.");
-                                }
-                            });
+                            new MySendDirectMessageListener());
                 } catch (Throwable t) {
                     t.printStackTrace();
                     log.debug("Exception at handleRequestIsOfferAvailableMessage " + t.getMessage());
@@ -622,6 +612,18 @@ public class OpenOfferManager implements PeerManager.Listener, DecryptedDirectMe
         if (retryRepublishOffersTimer != null) {
             retryRepublishOffersTimer.stop();
             retryRepublishOffersTimer = null;
+        }
+    }
+
+    private static class MySendDirectMessageListener implements SendDirectMessageListener {
+        @Override
+        public void onArrived() {
+            log.trace("OfferAvailabilityResponse successfully arrived at peer");
+        }
+
+        @Override
+        public void onFault() {
+            log.debug("Sending OfferAvailabilityResponse failed.");
         }
     }
 }
