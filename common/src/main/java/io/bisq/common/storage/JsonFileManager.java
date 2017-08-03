@@ -106,8 +106,8 @@ public class JsonFileManager {
     public Object readJsonFromDisc(String fileName) {
         final File jsonFile = new File(Paths.get(dir.getAbsolutePath(), fileName + ".json").toString());
         JSONParser parser = new JSONParser();
-        try {
-            return parser.parse(new FileReader(jsonFile));
+        try (FileReader in = new FileReader(jsonFile)){
+            return parser.parse(in);
         } catch (ParseException | IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

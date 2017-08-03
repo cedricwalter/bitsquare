@@ -102,10 +102,8 @@ public class SOCKS {
 
         final Properties pr = new Properties();
 
-        try {
-            final InputStream fin = new FileInputStream(file_name);
+        try (final InputStream fin = new FileInputStream(file_name)) {
             pr.load(fin);
-            fin.close();
         } catch (final IOException ioe) {
             return null;
         }

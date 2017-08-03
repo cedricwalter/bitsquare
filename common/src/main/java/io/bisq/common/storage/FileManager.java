@@ -180,9 +180,6 @@ public class FileManager<T extends PersistableEnvelope> {
 
     private synchronized void saveToFile(T persistable, File dir, File storageFile) {
         File tempFile = null;
-        FileOutputStream fileOutputStream = null;
-        PrintWriter printWriter = null;
-
         try {
             log.debug("Write to disc: {}", storageFile.getName());
             PB.PersistableEnvelope protoPersistable;
@@ -201,21 +198,27 @@ public class FileManager<T extends PersistableEnvelope> {
 
             tempFile = File.createTempFile("temp", null, dir);
             tempFile.deleteOnExit();
-            fileOutputStream = new FileOutputStream(tempFile);
 
-            log.debug("Writing protobuffer class:{} to file:{}", persistable.getClass(), storageFile.getName());
-            writeLock.lock();
-            protoPersistable.writeDelimitedTo(fileOutputStream);
+            try (FileOutputStream fileOutputStream = new FileOutputStream(tempFile)) {
+                log.debug("Writing protobuffer class:{} to file:{}", persistable.getClass(), storageFile.getName());
+                writeLock.lock();
+                protoPersistable.writeDelimitedTo(fileOutputStream);
 
-            // Attempt to force the bits to hit the disk. In reality the OS or hard disk itself may still decide
-            // to not write through to physical media for at least a few seconds, but this is the best we can do.
-            fileOutputStream.flush();
-            fileOutputStream.getFD().sync();
-            writeLock.unlock();
+                // Attempt to force the bits to hit the disk. In reality the OS or hard disk itself may still decide
+                // to not write through to physical media for at least a few seconds, but this is the best we can do.
+                fileOutputStream.flush();
+                fileOutputStream.getFD().sync();
+                writeLock.unlock();
 
-            // Close resources before replacing file with temp file because otherwise it causes problems on windows
-            // when rename temp file
-            fileOutputStream.close();
+                // Close resources before replacing file with temp file because otherwise it causes problems on windows
+                // when rename temp file
+                fileOutputStream.close();
+            } catch (IOException e) {
+                // We swallow that
+                e.printStackTrace();
+                log.error("Cannot close resources." + e.getMessage());
+            }
+
             FileUtil.renameFile(tempFile, storageFile);
         } catch (Throwable t) {
             log.error("Error at saveToFile, storageFile=" + storageFile.toString(), t);
@@ -226,18 +229,6 @@ public class FileManager<T extends PersistableEnvelope> {
                 log.warn("Temp file still exists after failed save. We will delete it now. storageFile=" + storageFile);
                 if (!tempFile.delete())
                     log.error("Cannot delete temp file.");
-            }
-
-            try {
-                if (fileOutputStream != null)
-                    fileOutputStream.close();
-                //noinspection ConstantConditions,ConstantConditions
-                if (printWriter != null)
-                    printWriter.close();
-            } catch (IOException e) {
-                // We swallow that
-                e.printStackTrace();
-                log.error("Cannot close resources." + e.getMessage());
             }
         }
     }
